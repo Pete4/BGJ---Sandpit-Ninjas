@@ -1,7 +1,7 @@
 function Player(id,name) {
   this.id = id;
-  this.x = 3000;
-  this.y = 3000;
+  this.x = 0;
+  this.y = 0;
   this.angle = 270;
   this.name = name;
   this.canvasSize = {width:1980,height:1024};
