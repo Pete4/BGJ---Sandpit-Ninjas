@@ -294,11 +294,8 @@ function sendUpdates() {
   }
 }
 
-
 function gameLoop() {
-  if (players.length != 0) {
-    checkPlayers();
-    movePlayers();
-    sendUpdates();
-  }
+  //checkPlayers();
+  movePlayers();
+  sendUpdates();
 }
