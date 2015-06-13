@@ -2,7 +2,7 @@
 //Game objects
 var playerPresets = {angle:270, fuel:100, junk:0, health:100 ,keyState:{}, ping:0};
 var player = playerPresets;
-var players = []; // other players
+var players = []; //Other players
 var asteroids = [];
 var resources = [];
 var canvas = $("#game-canvas")[0];
@@ -13,8 +13,11 @@ var socket;
 var frameDelay = 25;
 var lastMovedTime = Date.now();
 var name = 'Bob';
+var lastCollisionTime = 0;
+var state = 0;
+var shipAudioStartTime = Date.now();
 
-// Load images
+//Load images
 var spaceshipStationary = new Image();
 var spaceshipLeft = new Image();
 var spaceshipRight = new Image();
@@ -30,7 +33,6 @@ var junkImage = new Image;
 var blueBarImage = new Image;
 var pinkBarImage = new Image;
 var spawnImage = new Image;
-var lastCollisionTime = 0;
 spaceshipStationary.src = 'images/FirstSpace_NoFlame.png';
 spaceshipLeft.src = 'images/FirstSpace_RightFlame.png';
 spaceshipRight.src = 'images/FirstSpace_LeftFlame.png';
@@ -53,6 +55,9 @@ spawnImage.src = 'images/spawn.png';
 var audioEngineStart = new Audio('sound/engine_start.mp3');
 var audioEngineStop = new Audio('sound/engine_stop.mp3');
 var audioEngineOn = new Audio('sound/engine_on.mp3');
+var audioCrash = new Audio('sound/crash.mp3');
+var audioGameOver = new Audio('sound/gameover.mp3');
+//26540
 
 //Utilities
 var usedKeys = [37, 38, 39, 40];
@@ -110,6 +115,7 @@ function loadOverlay(died) {
 	$('#game-popup-response').html("");
 	if (died){
 		$('#game-popup-response').html("You died!");
+		audioGameOver.play();
 	}
 	player = playerPresets;
 	$('#start-popup').removeClass('hidden');
@@ -168,24 +174,28 @@ function movePlayer(p) {
 	var delta = (Date.now()-lastMovedTime)/1000.0;
 	if (Date.now() - lastCollisionTime > 500) {
 	    if (p.keyState[KEY_CODES.LEFT]) {
-			playSoundEffect(p);
-			p.state = 1;
+			playShipSoundEffect(p);
+			state = 1;
 			p.angle = (p.angle - p.rotationSpeed*delta) % 360;
 			if (p.angle < 0) p.angle += 360;
 	    } else if (p.keyState[KEY_CODES.RIGHT]) {
-			playSoundEffect(p);
-			p.state = 2;
+			playShipSoundEffect(p);
+			state = 2;
 			p.angle = (p.angle + p.rotationSpeed*delta) % 360;
 			if (p.angle < 0) p.angle += 360;
 	    } else if (p.keyState[KEY_CODES.UP]) {
 			//console.log(p.state);
-			playSoundEffect(p);
-			p.state = 3;
+			playShipSoundEffect(p);
+			state = 3;
 			p.x += p.forwardSpeed*delta*Math.cos(TO_RADIANS*p.angle);
 			p.y += p.forwardSpeed*delta*Math.sin(TO_RADIANS*p.angle);
 	    } else {
-			stopSoundEffects();
-			p.state = 0;
+			if (state != 0) {
+				console.log('played stop sound');
+				stopShipSoundEffects();
+				audioEngineStop.play();
+			}
+			state = 0;
 		}
 	    lastMovedTime = Date.now();
 	}
@@ -200,6 +210,7 @@ function checkCollisions() {
       var collDist = (a.width/2)*0.85 + (p.width/2)*0.85;
       if (a.health > 0 && xDiff*xDiff + yDiff*yDiff < collDist*collDist) {
         // Collision has occurred!
+		audioCrash.play();
         a.health -= 100;
         p.lastCollisionTime = Date.now()
         if (p.shield >= 20) p.shield -= 20;
@@ -212,21 +223,29 @@ function checkCollisions() {
     }
 }
 
-function playSoundEffect(p) {
-	if (p.state == 0) {
-		if (audioEngineOn.paused) {
+function playShipSoundEffect(p) {
+	if (state == 0) {
+		if (Date.now() > shipAudioStartTime + 1400) {
+			stopShipSoundEffects();
 			audioEngineStart.play();
+			shipAudioStartTime = Date.now();
 		}
 	} else {
-		if (audioEngineStart.paused) {
+		if (Date.now() > shipAudioStartTime + 1400) {
+			stopShipSoundEffects();
 			audioEngineOn.play();
+			shipAudioStartTime = Date.now();
 		}
 	}
 }
 
-function stopSoundEffects() {
+function stopShipSoundEffects() {
 	audioEngineStart.pause();
+	audioEngineStop.pause();
 	audioEngineOn.pause();
+	audioEngineStart.currentTime = 0;
+	audioEngineStop.currentTime = 0;
+	audioEngineOn.currentTime = 0;
 }
 
 function drawObjects() {
@@ -266,7 +285,7 @@ function drawPlayers() {
     ctx.save();
     ctx.translate(canvas.width/2,canvas.height/2);
     ctx.rotate((player.angle+90)*TO_RADIANS);
-	ctx.drawImage(spaceship[player.state], -32, -32, 64, 64);
+	ctx.drawImage(spaceship[state], -32, -32, 64, 64);
     ctx.restore();
 }
 
