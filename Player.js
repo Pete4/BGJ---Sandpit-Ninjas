@@ -22,3 +22,4 @@ function Player(id) {
     pingStart: this.pingStart
   }
 }
+exports.Player = Player;

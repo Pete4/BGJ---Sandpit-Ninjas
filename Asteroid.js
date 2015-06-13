@@ -4,7 +4,7 @@ function Asteroid(id,x,y) {
   this.y = y;
   this.width = 64;
   this.height = 64;
-  
+
   return {
     id: this.id,
     x: this.x,
@@ -13,3 +13,4 @@ function Asteroid(id,x,y) {
     height: this.height
   }
 }
+exports.Asteroid = Asteroid;

@@ -11,3 +11,5 @@ function Resource(x,y,id,type) {
     type: this.type
   }
 }
+
+exports.Resource = Resource;
