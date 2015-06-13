@@ -31,8 +31,10 @@ resourceImage.src = 'images/Resource.png';
 fuelImage.src = 'images/FuelIcon.png';
 junkImage.src = 'images/JunkIcon.png';
 
-//var audio = new Audio('audio_file.mp3');
-//audio.play();
+//Load sound effects
+var audioEngineStart = new Audio('sound/engine_start.mp3');
+var audioEngineStop = new Audio('sound/engine_stop.mp3');
+var audioEngineOn = new Audio('sound/engine_on.mp3');
 
 //Utilities
 var usedKeys = [37, 38, 39, 40];
@@ -68,6 +70,9 @@ $(function() {
     window.addEventListener("resize", function(){
 		updateCanvasSize();
     },true);
+	window.addEventListener("blur", function(){
+		keyState = {}
+	});
 });
 
 function updateCanvasSize() {
@@ -115,21 +120,44 @@ function getLocalCoords(x, y) {
 function movePlayer(p) {
 	var p = player;
 	var delta = (Date.now()-lastMovedTime)/1000.0;
-    p.state = 0;
     if (p.keyState[KEY_CODES.LEFT]) {
-      p.state = 1;
-      p.angle = (p.angle - p.rotationSpeed*delta) % 360;
-      if (p.angle < 0) p.angle += 360;
+		playSoundEffect(p);
+		p.state = 1;
+		p.angle = (p.angle - p.rotationSpeed*delta) % 360;
+		if (p.angle < 0) p.angle += 360;
     } else if (p.keyState[KEY_CODES.RIGHT]) {
-      p.state = 2;
-      p.angle = (p.angle + p.rotationSpeed*delta) % 360;
-      if (p.angle < 0) p.angle += 360;
+		playSoundEffect(p);
+		p.state = 2;
+		p.angle = (p.angle + p.rotationSpeed*delta) % 360;
+		if (p.angle < 0) p.angle += 360;
     } else if (p.keyState[KEY_CODES.UP]) {
-      p.state = 3;
-      p.x += p.forwardSpeed*delta*Math.cos(TO_RADIANS*p.angle);
-      p.y += p.forwardSpeed*delta*Math.sin(TO_RADIANS*p.angle);
-    }
+		//console.log(p.state);
+		playSoundEffect(p);
+		p.state = 3;
+		p.x += p.forwardSpeed*delta*Math.cos(TO_RADIANS*p.angle);
+		p.y += p.forwardSpeed*delta*Math.sin(TO_RADIANS*p.angle);
+    } else {
+		stopSoundEffects();
+		p.state = 0;
+	}
     lastMovedTime = Date.now();
+}
+
+function playSoundEffect(p) {
+	if (p.state == 0) {
+		if (audioEngineOn.paused) {
+			audioEngineStart.play();
+		}
+	} else {
+		if (audioEngineStart.paused) {
+			audioEngineOn.play();
+		}
+	}
+}
+
+function stopSoundEffects() {
+	audioEngineStart.pause();
+	audioEngineOn.pause();
 }
 
 function drawResourcesAndAsteroids() {
@@ -140,7 +168,7 @@ function drawResourcesAndAsteroids() {
 	}
 	for (var i = 0; i < asteroids.length; i++) {
 		var coords = getLocalCoords(asteroids[i].x, asteroids[i].y);
-		ctx.drawImage(asteroidImage, coords.x-16, coords.y-16, asteroids[i].width, asteroids[i].height);
+		ctx.drawImage(asteroidImage, coords.x-16, coords.y-16, 64, 64);
 	}
 }
 
@@ -179,10 +207,10 @@ function drawUI() {
 	//Display ping
     var pingText = "Ping: " + player.ping;
     ctx.font = 'italic 40pt Calibri';
+	ctx.fillStyle="#2ecc71";
     ctx.fillText(pingText, 30, 60);
 	
 	//Display fuel
-	ctx.fillStyle="#2ecc71";
-	ctx.fillRect(20,canvas.height-115,150,100);
-	ctx.drawImage(fuelImage, 30, canvas.height-50, 51, 24);
+	//ctx.fillRect(20,canvas.height-115,150,100);
+	ctx.drawImage(fuelImage, 20, canvas.height-50);
 }
