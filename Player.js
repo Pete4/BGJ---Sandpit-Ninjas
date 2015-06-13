@@ -18,6 +18,10 @@ function Player(id,name) {
   this.pingStart = 0;
   this.keyState = {};
   this.state = 0;
+  this.fuelCapacity = 100;
+  this.hullCapacity = 100;
+  this.gunDamage = 10;
+  this.lastCollisionTime = 0;
 
   return {
     id: this.id,
@@ -38,7 +42,11 @@ function Player(id,name) {
     ping: this.ping,
     pingStart: this.pingStart,
     keyState: this.keyState,
-    state: this.state
+    state: this.state,
+    fuelCapacity: this.fuelCapacity,
+    hullCapacity: this.hullCapacity,
+    gunDamage: this.gunDamage,
+    lastCollisionTime: this.lastCollisionTime
   };
 }
 exports.Player = Player;

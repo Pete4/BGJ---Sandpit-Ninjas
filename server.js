@@ -47,6 +47,7 @@ function inSite(file) {
 
 // GAME CODE STARTS HERE //
 
+var spectators = [];
 var players = [];
 var asteroids = [];
 var resources = [];
@@ -68,10 +69,41 @@ var mapCurrYLimits = [-3000,3000];
 io.on('connection', function(socket) {
   if (players.length == 0) console.log('A user connected. There is now '+(players.length+1).toString()+' player.');
   else console.log('A user connected. There are now '+(players.length+1).toString()+' players.');
-  var player = new Player(socket.id,'Bob');
-  players.push(player);
-  socket.emit('ping','');
-  player.pingStart = Date.now();
+  //spectators.push(new Player(socket.id,''))
+  var player;// = new Player(socket.id,'Bob');
+  //players.push(player);
+  //socket.emit('ping','');
+  //player.pingStart = Date.now();
+
+  socket.on('start', function(name) {
+    console.log('start');
+    if (typeof(name) == 'string') {
+      if (name == '') {
+        socket.emit('validation response',{answer:false,message:'You must have a name.'});
+      } else if (name.length > 10) {
+        socket.emit('validation response',{answer:false,message:'Max name length is 10 character.'});
+      } else {
+        var nameTaken = false;
+        for (var i = 0; i < players.length; i++) {
+          if (players[i].name == name) {
+            nameTaken = true;
+            break;
+          }
+        }
+        if (nameTaken) {
+          socket.emit('validation response',{answer:false,message:'That name is already taken.'});  
+        } else {
+          socket.emit('validation response',{answer:true});  
+          console.log('player added');
+          player = new Player(socket.id,name);
+          players.push(player);
+          socket.emit('player',player);
+          socket.emit('ping','');
+          player.pingStart = Date.now();
+        }
+      }
+    }
+  });
 
   socket.on('keyupdate', function(keyState) {
     if (typeof(player) != 'undefined') {
@@ -117,7 +149,7 @@ function genAsteroidsAndResources() {
   var width = 6000;
   var height = 6000;
   for (var i = 0; i < numAsteroids; i++) {
-    asteroids.push(new Asteroid(genID(),(Math.random()*width)-(width/2),(Math.random()*height)-(height/2),Math.floor(Math.random()*360)));
+    asteroids.push(new Asteroid(genID(),(Math.random()*width)-(width/2),(Math.random()*height)-(height/2),Math.floor(Math.random()*360),i));
   }
   for (var i = 0; i < numResources; i++) {
     resources.push(new Resource(genID(),(Math.random()*width)-(width/2),(Math.random()*height)-(height/2),'standard'));
@@ -128,38 +160,35 @@ function movePlayers() {
   for (var i = 0; i < players.length; i++) {
     var p = players[i];
     var delta = (Date.now()-p.lastMovedTime)/1000.0;
-    
-    if (p.keyState[KEY_CODES.LEFT]) {
-      p.fuel -= delta;
-      p.state = 1;
-      p.angle = (p.angle - p.rotationSpeed*delta) % 360;
-      if (p.angle < 0) p.angle += 360;
-    } else if (p.keyState[KEY_CODES.RIGHT]) {
-      p.fuel -= delta;
-      p.state = 2;
-      p.angle = (p.angle + p.rotationSpeed*delta) % 360;
-      if (p.angle < 0) p.angle += 360;
-    } else if (p.keyState[KEY_CODES.UP]) {
-      p.fuel -= delta;
-      p.state = 3;
-      p.x += p.forwardSpeed*delta*Math.cos(TO_RADIANS*p.angle);
-      p.y += p.forwardSpeed*delta*Math.sin(TO_RADIANS*p.angle);
-    } else {
-      p.state = 0;
+    if (Date.now() - p.lastCollisionTime > 500) {
+      if (p.keyState[KEY_CODES.LEFT]) {
+        p.fuel -= delta;
+        p.state = 1;
+        p.angle = (p.angle - p.rotationSpeed*delta) % 360;
+        if (p.angle < 0) p.angle += 360;
+      } else if (p.keyState[KEY_CODES.RIGHT]) {
+        p.fuel -= delta;
+        p.state = 2;
+        p.angle = (p.angle + p.rotationSpeed*delta) % 360;
+        if (p.angle < 0) p.angle += 360;
+      } else if (p.keyState[KEY_CODES.UP]) {
+        p.fuel -= delta;
+        p.state = 3;
+        p.x += p.forwardSpeed*delta*Math.cos(TO_RADIANS*p.angle);
+        p.y += p.forwardSpeed*delta*Math.sin(TO_RADIANS*p.angle);
+      } else {
+        p.state = 0;
+      }
+      p.lastMovedTime = Date.now();
     }
-    /*if (p.x < 32) p.x = 32;
-    if (p.y < 32) p.y = 32;
-    if (p.x > mapWidth-32) p.x = mapWidth-32;
-    if (p.y > mapHeight-32) p.y = mapHeight-32;*/
-    p.lastMovedTime = Date.now();
   }
 }
 
 function sortObjectsIntoGrids(objects) {
   var grids = [];
-  for (var w = mapCurrXLimits[0]; w < mapCurrXLimits[1]; w += gridSize) {
+  for (var w = mapCurrXLimits[0]; w <= mapCurrXLimits[1]; w += gridSize) {
     var gridCol = [];
-    for (var h = mapCurrXLimits[0]; h < mapCurrXLimits[1]; h += gridSize) {
+    for (var h = mapCurrXLimits[0]; h <= mapCurrXLimits[1]; h += gridSize) {
       gridCol.push([]);
     }
     grids.push(gridCol);
@@ -172,46 +201,103 @@ function sortObjectsIntoGrids(objects) {
   return grids;
 }
 
+function calculateRequiredObjects(p,gridPlayers,gridAsteroids,gridResources) {
+  var playersToSend = [];
+  var asteroidsToSend = [];
+  var resourcesToSend = [];
+  var numNegXGrids = -Math.min(mapCurrXLimits[0]/gridSize,0);
+  var numNegYGrids = -Math.min(mapCurrYLimits[0]/gridSize,0);
+  var lastXGridIndex = Math.ceil((mapCurrXLimits[1]-mapCurrXLimits[0])/gridSize);
+  var lastYGridIndex = Math.ceil((mapCurrYLimits[1]-mapCurrYLimits[0])/gridSize);
+  var startXGrid = Math.max(Math.floor((p.x-(p.canvasSize.width/2))/gridSize)+numNegXGrids,0);
+  var endXGrid = Math.min(Math.floor((p.x+(p.canvasSize.width/2))/gridSize)+numNegXGrids,lastXGridIndex);
+  var startYGrid = Math.max(Math.floor((p.y-(p.canvasSize.height/2))/gridSize)+numNegYGrids,0);
+  var endYGrid = Math.min(Math.floor((p.y+(p.canvasSize.height/2))/gridSize)+numNegYGrids,lastYGridIndex);
+  for (var x = startXGrid; x <= endXGrid; x++) {
+    for (var y = startYGrid; y <= endYGrid; y++) {
+      playersToSend = playersToSend.concat(gridPlayers[x][y]);
+      asteroidsToSend = asteroidsToSend.concat(gridAsteroids[x][y]);
+      resourcesToSend = resourcesToSend.concat(gridResources[x][y]);
+    }
+  }
+  return {
+    players: playersToSend,
+    asteroids: asteroidsToSend,
+    resources: resourcesToSend
+  };
+}
+
 function sendUpdates() {
+  for (var i = 0; i < asteroids.length; i++) {
+    asteroids[i].ind = i;
+  }
+  var deleteList = [];
   var gridPlayers = sortObjectsIntoGrids(players);
   var gridAsteroids = sortObjectsIntoGrids(asteroids);
   var gridResources = sortObjectsIntoGrids(resources);
+
   for (var i = 0; i < players.length; i++) {
-    var socket = io.sockets.connected[players[i].id];
+    var p = players[i];
+    var socket = io.sockets.connected[p.id];
     
     // Find out what each user should be able to see
-    var playersToSend = [];
-    var asteroidsToSend = [];
-    var resourcesToSend = [];
-    var numNegXGrids = -Math.min(mapCurrXLimits[0]/gridSize,0);
-    var numNegYGrids = -Math.min(mapCurrYLimits[0]/gridSize,0);
-    var lastXGridIndex = Math.floor((mapCurrXLimits[1]-mapCurrXLimits[0])/gridSize);
-    var lastYGridIndex = Math.floor((mapCurrYLimits[1]-mapCurrYLimits[0])/gridSize);
-    var startXGrid = Math.max(Math.floor((players[i].x-(players[i].canvasSize.width/2))/gridSize)+numNegXGrids,0);
-    var endXGrid = Math.min(Math.floor((players[i].x+(players[i].canvasSize.width/2))/gridSize)+numNegXGrids,lastXGridIndex);
-    var startYGrid = Math.max(Math.floor((players[i].y-(players[i].canvasSize.height/2))/gridSize)+numNegYGrids,0);
-    var endYGrid = Math.min(Math.floor((players[i].y+(players[i].canvasSize.height/2))/gridSize)+numNegYGrids,lastYGridIndex);
-    for (var x = startXGrid; x <= endXGrid; x++) {
-      for (var y = startYGrid; y <= endYGrid; y++) {
-        playersToSend = playersToSend.concat(gridPlayers[x][y]);
-        asteroidsToSend = asteroidsToSend.concat(gridAsteroids[x][y]);
-        resourcesToSend = resourcesToSend.concat(gridResources[x][y]);
+    var objsToSend = calculateRequiredObjects(p,gridPlayers,gridAsteroids,gridResources);
+
+    // Check for collisions
+    for (var i = 0; i < objsToSend.asteroids.length; i++) {
+      var a = objsToSend.asteroids[i];
+      var xDiff = p.x - a.x;
+      var yDiff = p.y - a.y;
+      var collDist = (a.width/2)*0.85 + (p.width/2)*0.85;
+      if (a.health > 0 && xDiff*xDiff + yDiff*yDiff < collDist*collDist) {
+        // Collision has occurred!
+        a.health -= 100;
+        p.lastCollisionTime = Date.now()
+        if (p.shield >= 20) p.shield -= 20;
+        else if (p.shield == 0) p.health -= 20;
+        else {
+          p.health -= (20-p.shield);
+          p.shield = 0;
+        }
       }
     }
-    var gamedata = {players:playersToSend, asteroids:asteroidsToSend, resources:resourcesToSend};
 
-    //console.log(asteroidsToSend.length);
-    //if (players.length != 0) console.log('x = '+players[0].x.toString()+' y = '+players[0].y.toString());
-    // Send updates
-    if (typeof(socket) != 'undefined') {
-      socket.emit('player',players[i]);
-      socket.emit('gamedata',gamedata);
+    for (var i = 0; i < objsToSend.asteroids.length; i++) {
+      var ind = objsToSend.asteroids[i].ind;
+      if (asteroids[ind].health <= 0) {
+        if (asteroids[ind].timeOfDeath == null) {
+          asteroids[ind].timeOfDeath = Date.now();
+        } else {
+          asteroids[ind].timeSinceDeath = Date.now() - asteroids[ind].timeOfDeath;
+        }
+        if (asteroids[ind].timeSinceDeath > 500) {
+          deleteList.push(ind);
+        }
+      }
     }
+
+    // Send updates
+    socket.emit('player',p);
+    socket.emit('gamedata',objsToSend);
+  }
+  /*for (var i = 0; i < spectators.length; i++) {
+    var s = spectators[i];
+    var socket = io.sockets.connected[p.id];
+    var objsToSend = calculateRequiredObjects(s,gridPlayers,gridAsteroids,gridResources);
+    if (typeof(socket) != 'undefined') {
+      socket.emit('gamedata',objsToSend.asteroids);
+    }
+  }*/
+  // Check for destroyed asteroids
+  for(var i = deleteList.length-1; i >= 0; i--) {
+    asteroids.splice(deleteList[i],1);
   }
 }
 
+
 function gameLoop() {
   if (players.length != 0) {
+    checkPlayers();
     movePlayers();
     sendUpdates();
   }

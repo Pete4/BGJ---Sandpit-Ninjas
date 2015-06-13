@@ -19,18 +19,24 @@ var spaceshipLeft = new Image();
 var spaceshipRight = new Image();
 var spaceshipForward = new Image();
 var asteroidImage = new Image;
+var asteroidHalfExpImage = new Image;
+var asteroidExpImage = new Image;
 var resourceImage = new Image;
 var fuelImage = new Image;
 var junkImage = new Image;
 var blueBarImage = new Image;
 var pinkBarImage = new Image;
 var spawnImage = new Image;
+var lastCollisionTime = 0;
 spaceshipStationary.src = 'images/FirstSpace_NoFlame.png';
 spaceshipLeft.src = 'images/FirstSpace_RightFlame.png';
 spaceshipRight.src = 'images/FirstSpace_LeftFlame.png';
 spaceshipForward.src = 'images/FirstSpace.png';
 var spaceship = [spaceshipStationary,spaceshipLeft,spaceshipRight,spaceshipForward]; // useful format
 asteroidImage.src = 'images/Asteroid.png';
+asteroidHalfExpImage.src = 'images/AsteroidHalfExplode.png';
+asteroidExpImage.src = 'images/AsteroidExplode.png';
+var asteroid = [asteroidImage,asteroidHalfExpImage,asteroidExpImage];
 resourceImage.src = 'images/Resource.png';
 fuelImage.src = 'images/FuelIcon.png';
 junkImage.src = 'images/JunkIcon.png';
@@ -155,27 +161,50 @@ function getLocalCoords(x, y) {
 function movePlayer(p) {
 	var p = player;
 	var delta = (Date.now()-lastMovedTime)/1000.0;
-    if (p.keyState[KEY_CODES.LEFT]) {
-		playSoundEffect(p);
-		p.state = 1;
-		p.angle = (p.angle - p.rotationSpeed*delta) % 360;
-		if (p.angle < 0) p.angle += 360;
-    } else if (p.keyState[KEY_CODES.RIGHT]) {
-		playSoundEffect(p);
-		p.state = 2;
-		p.angle = (p.angle + p.rotationSpeed*delta) % 360;
-		if (p.angle < 0) p.angle += 360;
-    } else if (p.keyState[KEY_CODES.UP]) {
-		//console.log(p.state);
-		playSoundEffect(p);
-		p.state = 3;
-		p.x += p.forwardSpeed*delta*Math.cos(TO_RADIANS*p.angle);
-		p.y += p.forwardSpeed*delta*Math.sin(TO_RADIANS*p.angle);
-    } else {
-		stopSoundEffects();
-		p.state = 0;
+	if (Date.now() - lastCollisionTime > 500) {
+	    if (p.keyState[KEY_CODES.LEFT]) {
+			playSoundEffect(p);
+			p.state = 1;
+			p.angle = (p.angle - p.rotationSpeed*delta) % 360;
+			if (p.angle < 0) p.angle += 360;
+	    } else if (p.keyState[KEY_CODES.RIGHT]) {
+			playSoundEffect(p);
+			p.state = 2;
+			p.angle = (p.angle + p.rotationSpeed*delta) % 360;
+			if (p.angle < 0) p.angle += 360;
+	    } else if (p.keyState[KEY_CODES.UP]) {
+			//console.log(p.state);
+			playSoundEffect(p);
+			p.state = 3;
+			p.x += p.forwardSpeed*delta*Math.cos(TO_RADIANS*p.angle);
+			p.y += p.forwardSpeed*delta*Math.sin(TO_RADIANS*p.angle);
+	    } else {
+			stopSoundEffects();
+			p.state = 0;
+		}
+	    lastMovedTime = Date.now();
 	}
-    lastMovedTime = Date.now();
+}
+
+function checkCollisions() {
+	var p = player;
+	for (var i = 0; i < asteroids.length; i++) {
+      var a = asteroids[i];
+      var xDiff = p.x - a.x;
+      var yDiff = p.y - a.y;
+      var collDist = (a.width/2)*0.85 + (p.width/2)*0.85;
+      if (a.health > 0 && xDiff*xDiff + yDiff*yDiff < collDist*collDist) {
+        // Collision has occurred!
+        a.health -= 100;
+        p.lastCollisionTime = Date.now()
+        if (p.shield >= 20) p.shield -= 20;
+        else if (p.shield == 0) p.health -= 20;
+        else {
+          p.health -= (20-p.shield);
+          p.shield = 0;
+        }
+      }
+    }
 }
 
 function playSoundEffect(p) {
@@ -207,7 +236,11 @@ function drawObjects() {
 	}
 	for (var i = 0; i < asteroids.length; i++) {
 		var coords = getLocalCoords(asteroids[i].x, asteroids[i].y);
-		ctx.drawImage(asteroidImage, coords.x-(asteroids[i].width/2), coords.y-(asteroids[i].height/2), asteroids[i].width, asteroids[i].height);
+		if (asteroids[i].timeOfDeath == null) {
+			ctx.drawImage(asteroid[0], coords.x-(asteroids[i].width/2), coords.y-(asteroids[i].height/2), asteroids[i].width, asteroids[i].height);
+		}else {
+			ctx.drawImage(asteroid[1+Math.min(1,Math.floor(asteroids[i].timeSinceDeath/250))], coords.x-(asteroids[i].width/2), coords.y-(asteroids[i].height/2), asteroids[i].width, asteroids[i].height);
+		}
 	}
 }
 
@@ -237,9 +270,12 @@ function updateCanvas() {
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 	
 	movePlayer();
+	checkCollisions();
 	drawObjects();
 	drawPlayers();
 	drawUI();
+
+	if (player.health <= 0) loadOverlay(true);
 }
 
 function drawUI() {

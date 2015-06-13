@@ -9,6 +9,6 @@ function Resource(id,x,y,type) {
     x: this.x,
     y: this.y,
     type: this.type
-  }
+  };
 }
 exports.Resource = Resource;
