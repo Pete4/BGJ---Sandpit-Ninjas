@@ -23,6 +23,7 @@ var fuelImage = new Image;
 var junkImage = new Image;
 var blueBarImage = new Image;
 var pinkBarImage = new Image;
+var spawnImage = new Image;
 spaceshipStationary.src = 'images/FirstSpace_NoFlame.png';
 spaceshipLeft.src = 'images/FirstSpace_RightFlame.png';
 spaceshipRight.src = 'images/FirstSpace_LeftFlame.png';
@@ -34,6 +35,7 @@ fuelImage.src = 'images/FuelIcon.png';
 junkImage.src = 'images/JunkIcon.png';
 blueBarImage.src = 'images/BlueBar.png';
 pinkBarImage.src = 'images/PinkBar.png';
+spawnImage.src = 'images/spawn.png';
 
 //Load sound effects
 var audioEngineStart = new Audio('sound/engine_start.mp3');
@@ -164,7 +166,11 @@ function stopSoundEffects() {
 	audioEngineOn.pause();
 }
 
-function drawResourcesAndAsteroids() {
+function drawObjects() {
+	//Draw spawn
+	var coords = getLocalCoords(0, 0);
+	ctx.drawImage(asteroidImage, coords.x-341, coords.y-247, 683, 593);
+	
 	//Draw resources and asteroids
 	for (var i = 0; i < resources.length; i++) {
 		var coords = getLocalCoords(resources[i].x, resources[i].y);
@@ -174,11 +180,6 @@ function drawResourcesAndAsteroids() {
 		var coords = getLocalCoords(asteroids[i].x, asteroids[i].y);
 		ctx.drawImage(asteroidImage, coords.x-16, coords.y-16, 64, 64);
 	}
-	var coords = getLocalCoords(0,0);
-	if (coords.x > -231 && coords.x < canvas.width+231 && coords.y > -46 && coords.y < canvas.height+46) {
-		ctx.drawImage(baseImage, coords.x-231, coords.y-46, 261, 91);
-	}
-		
 }
 
 function drawPlayers() {
@@ -207,7 +208,7 @@ function updateCanvas() {
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 	
 	movePlayer();
-	drawResourcesAndAsteroids();
+	drawObjects();
 	drawPlayers();
 	drawUI();
 }
