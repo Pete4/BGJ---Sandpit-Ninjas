@@ -1,6 +1,6 @@
 "use strict"
 //Game objects
-var player = {angle:270};
+var player = {angle:270, fuel:100, junk:0};
 var players = []; // other players
 var asteroids = [];
 var resources = [];
@@ -21,6 +21,8 @@ var asteroidImage = new Image;
 var resourceImage = new Image;
 var fuelImage = new Image;
 var junkImage = new Image;
+var blueBarImage = new Image;
+var pinkBarImage = new Image;
 spaceshipStationary.src = 'images/FirstSpace_NoFlame.png';
 spaceshipLeft.src = 'images/FirstSpace_RightFlame.png';
 spaceshipRight.src = 'images/FirstSpace_LeftFlame.png';
@@ -30,6 +32,8 @@ asteroidImage.src = 'images/Asteroid.png';
 resourceImage.src = 'images/Resource.png';
 fuelImage.src = 'images/FuelIcon.png';
 junkImage.src = 'images/JunkIcon.png';
+blueBarImage.src = 'images/BlueBar.png';
+pinkBarImage.src = 'images/PinkBar.png';
 
 //Load sound effects
 var audioEngineStart = new Audio('sound/engine_start.mp3');
@@ -211,6 +215,36 @@ function drawUI() {
     ctx.fillText(pingText, 30, 60);
 	
 	//Display fuel
-	//ctx.fillRect(20,canvas.height-115,150,100);
-	ctx.drawImage(fuelImage, 20, canvas.height-50);
+	var fuelHeightOffset = 90;
+	//var bars = Math.ceil(player.fuel/20);
+	//var fuelExcess = player.fuel % 20;
+	var fuelBars = Math.floor(5);
+	var fuelExcess = 15 % 20;
+	ctx.drawImage(fuelImage, 20, canvas.height-fuelHeightOffset);
+	for (var i = 1; i <= fuelBars; i++) {
+		if (i % 2 == 0) {
+			ctx.drawImage(blueBarImage, 75 + (i*20), canvas.height-fuelHeightOffset);
+		} else {
+			ctx.drawImage(pinkBarImage, 75 + (i*20), canvas.height-fuelHeightOffset);
+		}
+	}
+	if (fuelExcess != 0) {
+		if (fuelBars % 2 == 0) {
+			ctx.drawImage(blueBarImage, 0, 0, 16*(fuelExcess/20), 32, 75 + ((fuelBars+1)*20), canvas.height-fuelHeightOffset, 16*(fuelExcess/20), 32);
+		} else {
+			ctx.drawImage(pinkBarImage, 0, 0, 16*(fuelExcess/20), 32, 75 + ((fuelBars+1)*20), canvas.height-fuelHeightOffset, 16*(fuelExcess/20), 32);
+		}
+	}
+	
+	//Display cargo
+	var junkHeightOffset = 50;
+	var junkBars = 5;
+	ctx.drawImage(junkImage, 20, canvas.height-junkHeightOffset);
+	for (var i = 1; i <= junkBars; i++) {
+		if (i % 2 == 0) {
+			ctx.drawImage(blueBarImage, 75 + (i*20), canvas.height-junkHeightOffset);
+		} else {
+			ctx.drawImage(pinkBarImage, 75 + (i*20), canvas.height-junkHeightOffset);
+		}
+	}
 }
