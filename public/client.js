@@ -19,6 +19,8 @@ var spaceshipRight = new Image();
 var spaceshipForward = new Image();
 var asteroidImage = new Image;
 var resourceImage = new Image;
+var fuelImage = new Image;
+var junkImage = new Image;
 spaceshipStationary.src = 'images/FirstSpace_NoFlame.png';
 spaceshipLeft.src = 'images/FirstSpace_RightFlame.png';
 spaceshipRight.src = 'images/FirstSpace_LeftFlame.png';
@@ -26,6 +28,8 @@ spaceshipForward.src = 'images/FirstSpace.png';
 var spaceship = [spaceshipStationary,spaceshipLeft,spaceshipRight,spaceshipForward]; // useful format
 asteroidImage.src = 'images/Asteroid.png';
 resourceImage.src = 'images/Resource.png';
+fuelImage.src = 'images/FuelIcon.png';
+junkImage.src = 'images/JunkIcon.png';
 
 //var audio = new Audio('audio_file.mp3');
 //audio.play();
@@ -168,8 +172,17 @@ function updateCanvas() {
 	movePlayer();
 	drawResourcesAndAsteroids();
 	drawPlayers();
+	drawUI();
+}
 
+function drawUI() {
+	//Display ping
     var pingText = "Ping: " + player.ping;
     ctx.font = 'italic 40pt Calibri';
-    ctx.fillText(pingText, 30, 30);
+    ctx.fillText(pingText, 30, 60);
+	
+	//Display fuel
+	ctx.fillStyle="#2ecc71";
+	ctx.fillRect(20,canvas.height-115,150,100);
+	ctx.drawImage(fuelImage, 30, canvas.height-50, 51, 24);
 }
