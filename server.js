@@ -54,6 +54,7 @@ var asteroids = [];
 var resources = [];
 var numAsteroids = 1000;
 var numResources = 1000;
+var gridSize = 500;
 var idCounter = 0;
 var frameDelay = 35;
 var KEY_CODES = {
@@ -90,6 +91,11 @@ io.on('connection', function(socket) {
       setTimeout(function(){socket.emit('ping',''); player.pingStart = Date.now();},2000);
     }
   });
+  socket.on('canvassize', function(canvasSize) {
+    if (typeof(player) != 'undefined') {
+      player.canvasSize = canvasSize;
+    }
+  });
 });
 
 genAsteroidsAndResources();
@@ -106,22 +112,10 @@ function genID() {
 
 function genAsteroidsAndResources() {
   for (var i = 0; i < numAsteroids; i++) {
-    asteroids.push(new Asteroid(genID(),32+Math.random()*(mapWidth-64),32+Math.random()*(mapHeight-64)),Math.floor(Math.random()*360));
+    asteroids.push(new Asteroid(genID(),32+Math.random()*(mapWidth-64),32+Math.random()*(mapHeight-64),Math.floor(Math.random()*360)));
   }
   for (var i = 0; i < numResources; i++) {
-    resources.push(new Resource(genID(),32+Math.random()*(mapWidth-64),32+Math.random()*(mapHeight-64)),'standard');
-  }
-}
-
-function sendUpdates() {
-  for (var i = 0; i < players.length; i++) {
-    var socket = io.sockets.connected[players[i].id];
-    var gamedata = {players:players, asteroids:asteroids, resources:resources};
-    // find out what each user should be able to see
-    if (typeof(socket) != 'undefined') {
-      socket.emit('player',players[i]);
-      socket.emit('gamedata',gamedata);
-    }
+    resources.push(new Resource(genID(),32+Math.random()*(mapWidth-64),32+Math.random()*(mapHeight-64),'standard'));
   }
 }
 
@@ -129,7 +123,7 @@ function movePlayers() {
   for (var i = 0; i < players.length; i++) {
     var p = players[i];
     var delta = (Date.now()-p.lastMovedTime)/1000.0;
-    p.state = 0;
+    
     if (p.keyState[KEY_CODES.LEFT]) {
       p.state = 1;
       p.angle = (p.angle - p.rotationSpeed*delta) % 360;
@@ -142,8 +136,62 @@ function movePlayers() {
       p.state = 3;
       p.x += p.forwardSpeed*delta*Math.cos(TO_RADIANS*p.angle);
       p.y += p.forwardSpeed*delta*Math.sin(TO_RADIANS*p.angle);
+    } else {
+      p.state = 0;
     }
+    if (p.x < 32) p.x = 32;
+    if (p.y < 32) p.y = 32;
+    if (p.x > mapWidth-32) p.x = mapWidth-32;
+    if (p.y > mapHeight-32) p.y = mapHeight-32;
     p.lastMovedTime = Date.now();
+  }
+}
+
+function sortObjectsIntoGrids(objects) {
+  var grids = [];
+  for (var w = 0; w < mapWidth; w += gridSize) {
+    var gridCol = [];
+    for (var h = 0; h < mapHeight; h += gridSize) {
+      gridCol.push([]);
+    }
+    grids.push(gridCol);
+  }
+  for (var i = 0; i < objects.length; i++) {
+    grids[Math.floor(objects[i].x/gridSize)][Math.floor(objects[i].y/gridSize)].push(i);
+  }
+  return grids;
+}
+
+function sendUpdates() {
+  var gridPlayers = sortObjectsIntoGrids(players);
+  var gridAsteroids = sortObjectsIntoGrids(asteroids);
+  var gridResources = sortObjectsIntoGrids(resources);
+  for (var i = 0; i < players.length; i++) {
+    var socket = io.sockets.connected[players[i].id];
+    //var gamedata = {players:players, asteroids:asteroids, resources:resources};
+    
+    // Find out what each user should be able to see
+    var playersToSend = [];
+    var asteroidsToSend = [];
+    var resourcesToSend = [];
+    var startXGrid = Math.floor((players[i].x-(players[i].canvasSize.width/2))/gridSize);
+    var endXGrid = Math.floor((players[i].x+(players[i].canvasSize.width/2))/gridSize);
+    var startYGrid = Math.floor((players[i].y-(players[i].canvasSize.height/2))/gridSize);
+    var endYGrid = Math.floor((players[i].y+(players[i].canvasSize.height/2))/gridSize);
+    for (var x = startXGrid; x <= endXGrid; x++) {
+      for (var y = startYGrid; y <= endYGrid; y++) {
+        playersToSend.concat(gridPlayers[x][y]);
+        asteroidsToSend.concat(gridAsteroids[x][y]);
+        resourcesToSend.concat(gridResources[x][y]);
+      }
+    }
+    var gamedata = {players:playersToSend, asteroids:asteroidsToSend, resources:resourcesToSend};
+
+    // Send updates
+    if (typeof(socket) != 'undefined') {
+      socket.emit('player',players[i]);
+      socket.emit('gamedata',gamedata);
+    }
   }
 }
 
