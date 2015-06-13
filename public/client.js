@@ -81,6 +81,9 @@ function registerSocketHooks() {
 		asteroids = obj.asteroids;
 		resources = obj.resources;
 	})
+	socket.on('ping', function(p){
+      socket.emit('ping response',p);
+    });
 }
 
 function getLocalCoords(x, y) {
@@ -139,4 +142,8 @@ function updateCanvas() {
     ctx.rotate((p.angle+90)*TO_RADIANS);
 	ctx.drawImage(curSpaceship, -32, -32, 64, 64);
     ctx.restore();
+
+    var pingText = "Ping: " + p.ping;
+    ctx.font = 'italic 40pt Calibri';
+    ctx.fillText(pingText, 30, canvas.height-30);
 }

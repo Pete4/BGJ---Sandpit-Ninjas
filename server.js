@@ -55,7 +55,7 @@ var resources = [];
 var numAsteroids = 1000;
 var numResources = 1000;
 var idCounter = 0;
-var frameDelay = 25;
+var frameDelay = 35;
 var KEY_CODES = {
   LEFT: 37,
   UP: 38,
@@ -68,10 +68,14 @@ io.on('connection', function(socket) {
   console.log('A user connected. There are now '+(players.length+1).toString()+' players.');
   var player = new Player(socket.id,'Bob');
   players.push(player);
+  socket.emit('ping','');
+  player.pingStart = Date.now();
 
   socket.on('keyupdate', function(keyState) {
     if (typeof(player) != 'undefined') {
       player.keyState = keyState;
+      console.log('keyupdate');
+      player.lastMovedTime = Date.now();
     }
   });
   socket.on('disconnect', function() {
@@ -80,6 +84,12 @@ io.on('connection', function(socket) {
       io.emit('remove player',player.id);
       players.splice(players.indexOf(player), 1);
     } 
+  });
+  socket.on('ping response', function(data) {
+    if (typeof(player) != 'undefined') {
+      player.ping = Date.now() - player.pingStart;
+      setTimeout(function(){socket.emit('ping',''); player.pingStart = Date.now();},2000);
+    }
   });
 });
 
@@ -119,20 +129,22 @@ function sendUpdates() {
 function movePlayers() {
   for (var i = 0; i < players.length; i++) {
     var p = players[i];
+    var delta = (Date.now()-p.lastMovedTime)/1000.0;
     p.state = 0;
     if (p.keyState[KEY_CODES.LEFT]) {
       p.state = 1;
-      p.angle = (p.angle - p.rotationSpeed*(frameDelay/1000)) % 360;
+      p.angle = (p.angle - p.rotationSpeed*delta) % 360;
       if (p.angle < 0) p.angle += 360;
     } else if (p.keyState[KEY_CODES.RIGHT]) {
       p.state = 2;
-      p.angle = (p.angle + p.rotationSpeed*(25/1000)) % 360;
+      p.angle = (p.angle + p.rotationSpeed*delta) % 360;
       if (p.angle < 0) p.angle += 360;
     } else if (p.keyState[KEY_CODES.UP]) {
       p.state = 3;
-      p.x = p.x + p.forwardSpeed*(frameDelay/1000)*Math.cos(TO_RADIANS*p.angle);
-      p.y = p.y + p.forwardSpeed*(frameDelay/1000)*Math.sin(TO_RADIANS*p.angle);
+      p.x += p.forwardSpeed*delta*Math.cos(TO_RADIANS*p.angle);
+      p.y += p.forwardSpeed*delta*Math.sin(TO_RADIANS*p.angle);
     }
+    p.lastMovedTime = Date.now();
   }
 }
 

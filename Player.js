@@ -6,7 +6,7 @@ function Player(id,name) {
   this.name = name;
   this.forwardSpeed = 100; // px/sec
   this.rotationSpeed = 160; // deg/sec
-  this.lastMovedTime = 0;
+  this.lastMovedTime = Date.now();
   this.ping = 0;
   this.pingStart = 0;
   this.keyState = {};
