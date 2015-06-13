@@ -5,6 +5,7 @@ var players = []; // other players
 var asteroids = [];
 var resources = [];
 var canvas = $("#game-canvas")[0];
+var canvasSize = {height:0, width:0}
 var ctx = canvas.getContext("2d");
 var keyState = {};
 var socket;
@@ -40,10 +41,8 @@ var KEY_CODES = {
 var TO_RADIANS = Math.PI/180; 
 
 $(function() {
-	canvas.height = $(window).height();
-	canvas.width = $(window).width();
-	
 	registerSocketHooks();
+	updateCanvasSize();
 	
 	//Start timed canvas updates for UI
 	setInterval(updateCanvas, frameDelay);
@@ -63,10 +62,18 @@ $(function() {
 		}
     },true);
     window.addEventListener("resize", function(){
-		canvas.height = $(window).height();
-		canvas.width = $(window).width();
+		updateCanvasSize();
     },true);
 });
+
+function updateCanvasSize() {
+	canvas.height = $(window).height();
+	canvas.width = $(window).width();
+	canvasSize.height = canvas.height;
+	canvasSize.width = canvas.width;
+	
+	socket.emit('canvassize',canvasSize);
+}
 
 function registerSocketHooks() {
 	//socket.emit('name', object);
@@ -164,5 +171,5 @@ function updateCanvas() {
 
     var pingText = "Ping: " + player.ping;
     ctx.font = 'italic 40pt Calibri';
-    ctx.fillText(pingText, 30, canvas.height-30);
+    ctx.fillText(pingText, 30, 30);
 }
