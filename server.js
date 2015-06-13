@@ -7,6 +7,8 @@ var io = require('socket.io')(http);
 var url = require('url');
 var fs = require('fs');
 var Player = require('./Player.js').Player;
+var Asteroid = require('./Asteroid.js').Asteroid;
+var Resource = require('./Resource.js').Resource;
 var sitePrefix = './public';
 var site = fs.realpathSync('.') + path.sep + 'public';
 var OK = 200, Redirect = 307, NotFound = 404, BadType = 415, Error = 500;
@@ -57,14 +59,13 @@ var KEY_CODES = {
   UP: 38,
   RIGHT: 39,
   DOWN: 40
-}
+};
 
 io.on('connection', function(socket) {
   console.log('a user connected');
-  var player = new Player(socket.id)
+  var player = new Player(socket.id,'Bob');
   players.push(player);
   socket.on('keyupdate', function(keyState) {
-    console.log('keyupdate')
     if (typeof(player) != 'undefined') {
       player.keyState = keyState;
     }
@@ -103,10 +104,10 @@ function sendUpdates() {
 
 function movePlayers() {
   for (var i = 0; i < players.length; i++) {
-    p = players[i];
+    var p = players[i];
     if (p.keyState[KEY_CODES.LEFT]) {
       p.angle = (p.angle - p.rotation*(25/1000)) % 360
-    } else if (keyState[KEY_CODES.RIGHT]) {
+    } else if (p.keyState[KEY_CODES.RIGHT]) {
       p.angle = (p.angle + p.rotation*(25/1000)) % 360
     }
   }

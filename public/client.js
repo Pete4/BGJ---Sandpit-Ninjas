@@ -5,6 +5,7 @@ var canvas = $("#game-canvas")[0];
 var ctx = canvas.getContext("2d");
 var keyState = {};
 var curRotation = 0;
+var socket;
 
 var spaceshipStationary = new Image();
 var spaceshipLeft = new Image();
@@ -38,13 +39,13 @@ $(function() {
 	setInterval(updateCanvas, 25);
 	
 	window.addEventListener('keydown',function(e){
-		if (usedKeys.indexOf(e.which) != -1) {
+		if (usedKeys.indexOf(e.which) != -1 && !keyState[e.which]) {
 			keyState[e.which] = true;
 			socket.emit('keyupdate', keyState);
 		}
     },true);
     window.addEventListener('keyup',function(e){
-		if (usedKeys.indexOf(e.which) != -1) {
+		if (usedKeys.indexOf(e.which) != -1 && keyState[e.which]) {
 			keyState[e.which] = false;
 			socket.emit('keyupdate', keyState);
 		}
@@ -56,14 +57,13 @@ function registerSocketHooks() {
 	//socket.on('name', function to handle object);
 	
 	//Join player to game
-	var socket = io();
+	socket = io();
 	
 	//Hooks for websocket
 	socket.on('players', function(p) {
 		players = p;
 	})
 	socket.on('gamedata', function(obj) {
-		console.log("Game data received: "+obj);
 		players = obj.players;
 		asteroids = obj.asteroids;
 	})

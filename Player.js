@@ -1,4 +1,4 @@
-function Player(id) {
+function Player(id,name) {
   this.id = id;
   this.x = 0;
   this.y = 0;
@@ -9,6 +9,7 @@ function Player(id) {
   this.lastMovedTime = 0;
   this.ping = 0;
   this.pingStart = 0;
+  this.keyState = {};
 
   return {
     id: this.id,
@@ -19,7 +20,8 @@ function Player(id) {
     speed: this.speed,
     lastMovedTime: this.lastMovedTime,
     ping: this.ping,
-    pingStart: this.pingStart
+    pingStart: this.pingStart,
+    keyState: this.keyState
   }
 }
 exports.Player = Player;
