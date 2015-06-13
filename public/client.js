@@ -1,6 +1,7 @@
 "use strict"
 //Game objects
-var player = {angle:270, fuel:100, junk:0, health:100, shield:0};
+var playerPresets = {angle:270, fuel:100, junk:0, health:100 ,keyState:{}, ping:0};
+var player = playerPresets;
 var players = []; // other players
 var asteroids = [];
 var resources = [];
@@ -22,6 +23,8 @@ var asteroidImage = new Image;
 var asteroidHalfExpImage = new Image;
 var asteroidExpImage = new Image;
 var resourceImage = new Image;
+var shieldImage = new Image;
+var healthImage = new Image;
 var fuelImage = new Image;
 var junkImage = new Image;
 var blueBarImage = new Image;
@@ -38,6 +41,8 @@ asteroidHalfExpImage.src = 'images/AsteroidHalfExplode.png';
 asteroidExpImage.src = 'images/AsteroidExplode.png';
 var asteroid = [asteroidImage,asteroidHalfExpImage,asteroidExpImage];
 resourceImage.src = 'images/Resource.png';
+shieldImage.src = 'images/ShieldIcon.png';
+healthImage.src = 'images/HealthIcon.png';
 fuelImage.src = 'images/FuelIcon.png';
 junkImage.src = 'images/JunkIcon.png';
 blueBarImage.src = 'images/BlueBar.png';
@@ -102,11 +107,11 @@ function start() {
 }
 
 function loadOverlay(died) {
+	$('#game-popup-response').html("");
 	if (died){
 		$('#game-popup-response').html("You died!");
 	}
-	$('#game-popup-response').html("");
-	
+	player = playerPresets;
 	$('#start-popup').removeClass('hidden');
 	$('#start-popup').popup({
 		transition: 'all 0.3s',
@@ -280,14 +285,50 @@ function updateCanvas() {
 
 function drawUI() {
 	//Display ping, health and sheilds (temporary).
-    ctx.font = 'italic 40pt Calibri';
-	ctx.fillStyle="#2ecc71";
+	ctx.fillStyle="#fff";
+	ctx.font="12px Arial";
 	var pingText = "Ping: " + player.ping;
-    ctx.fillText(pingText, 30, 60);
-    var healthText = "Health: " + player.health;
-    ctx.fillText(healthText, 30, 120);
-    var shieldText = "Shield: " + player.shield;
-    ctx.fillText(shieldText, 30, 180);
+    ctx.fillText(pingText, 20, 30);
+	
+	//Display shield
+	var shieldHeightOffset = 190;
+	var shieldBars = Math.floor(player.shield/20);
+	var shieldExcess = player.health % 20;
+	ctx.drawImage(shieldImage, 20, canvas.height-shieldHeightOffset);
+	for (var i = 1; i <= shieldBars; i++) {
+		if (i % 2 == 0) {
+			ctx.drawImage(blueBarImage, 110 + (i*20), canvas.height-shieldHeightOffset);
+		} else {
+			ctx.drawImage(pinkBarImage, 110 + (i*20), canvas.height-shieldHeightOffset);
+		}
+	}
+	if (shieldExcess != 0) {
+		if (shieldBars % 2 == 1) {
+			ctx.drawImage(blueBarImage, 0, 0, 16*(shieldExcess/20), 32, 110 + ((shieldBars+1)*20), canvas.height-shieldHeightOffset, 16*(shieldExcess/20), 32);
+		} else {
+			ctx.drawImage(pinkBarImage, 0, 0, 16*(shieldExcess/20), 32, 110 + ((shieldBars+1)*20), canvas.height-shieldHeightOffset, 16*(shieldExcess/20), 32);
+		}
+	}
+	
+	//Display health
+	var healthHeightOffset = 140;
+	var healthBars = Math.floor(player.health/20);
+	var healthExcess = player.health % 20;
+	ctx.drawImage(healthImage, 20, canvas.height-healthHeightOffset);
+	for (var i = 1; i <= healthBars; i++) {
+		if (i % 2 == 0) {
+			ctx.drawImage(blueBarImage, 110 + (i*20), canvas.height-healthHeightOffset);
+		} else {
+			ctx.drawImage(pinkBarImage, 110 + (i*20), canvas.height-healthHeightOffset);
+		}
+	}
+	if (healthExcess != 0) {
+		if (healthBars % 2 == 1) {
+			ctx.drawImage(blueBarImage, 0, 0, 16*(healthExcess/20), 32, 110 + ((healthBars+1)*20), canvas.height-healthHeightOffset, 16*(healthExcess/20), 32);
+		} else {
+			ctx.drawImage(pinkBarImage, 0, 0, 16*(healthExcess/20), 32, 110 + ((healthBars+1)*20), canvas.height-healthHeightOffset, 16*(healthExcess/20), 32);
+		}
+	}
 	
 	//Display fuel
 	var fuelHeightOffset = 90;
@@ -296,16 +337,16 @@ function drawUI() {
 	ctx.drawImage(fuelImage, 20, canvas.height-fuelHeightOffset);
 	for (var i = 1; i <= fuelBars; i++) {
 		if (i % 2 == 0) {
-			ctx.drawImage(blueBarImage, 75 + (i*20), canvas.height-fuelHeightOffset);
+			ctx.drawImage(blueBarImage, 110 + (i*20), canvas.height-fuelHeightOffset);
 		} else {
-			ctx.drawImage(pinkBarImage, 75 + (i*20), canvas.height-fuelHeightOffset);
+			ctx.drawImage(pinkBarImage, 110 + (i*20), canvas.height-fuelHeightOffset);
 		}
 	}
 	if (fuelExcess != 0) {
 		if (fuelBars % 2 == 1) {
-			ctx.drawImage(blueBarImage, 0, 0, 16*(fuelExcess/20), 32, 75 + ((fuelBars+1)*20), canvas.height-fuelHeightOffset, 16*(fuelExcess/20), 32);
+			ctx.drawImage(blueBarImage, 0, 0, 16*(fuelExcess/20), 32, 110 + ((fuelBars+1)*20), canvas.height-fuelHeightOffset, 16*(fuelExcess/20), 32);
 		} else {
-			ctx.drawImage(pinkBarImage, 0, 0, 16*(fuelExcess/20), 32, 75 + ((fuelBars+1)*20), canvas.height-fuelHeightOffset, 16*(fuelExcess/20), 32);
+			ctx.drawImage(pinkBarImage, 0, 0, 16*(fuelExcess/20), 32, 110 + ((fuelBars+1)*20), canvas.height-fuelHeightOffset, 16*(fuelExcess/20), 32);
 		}
 	}
 	
@@ -314,9 +355,9 @@ function drawUI() {
 	ctx.drawImage(junkImage, 20, canvas.height-junkHeightOffset);
 	for (var i = 1; i <= player.junk; i++) {
 		if (i % 2 == 0) {
-			ctx.drawImage(blueBarImage, 75 + (i*20), canvas.height-junkHeightOffset);
+			ctx.drawImage(blueBarImage, 110 + (i*20), canvas.height-junkHeightOffset);
 		} else {
-			ctx.drawImage(pinkBarImage, 75 + (i*20), canvas.height-junkHeightOffset);
+			ctx.drawImage(pinkBarImage, 110 + (i*20), canvas.height-junkHeightOffset);
 		}
 	}
 }

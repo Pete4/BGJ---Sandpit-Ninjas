@@ -20,9 +20,11 @@
 			<p id="game-popup-response"></p>
 			<hr>
 			<p>Your Name:</p>
-			<input id="start-popup-name" type="text" name="name" value="Bob"></input>
 			
-			<button id="join-game" class="white-background button" onclick="start()">Join Game</button>
+			<form action="" onsubmit="start();return false">
+				<input id="start-popup-name" type="text" name="name" value="Bob"></input>
+				<button id="join-game" class="white-background button" type="submit">Join Game</button>
+			</form>
 
 		</div>
 		
