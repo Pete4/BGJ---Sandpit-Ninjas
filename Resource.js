@@ -1,7 +1,7 @@
-function Resource(x,y,id,type) {
+function Resource(id,x,y,type) {
   this.id = id;
-  this.x = 0;
-  this.y = 0;
+  this.x = x;
+  this.y = y;
   this.type = type;
 
   return {
@@ -11,5 +11,4 @@ function Resource(x,y,id,type) {
     type: this.type
   }
 }
-
 exports.Resource = Resource;

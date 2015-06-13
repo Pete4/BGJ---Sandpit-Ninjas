@@ -52,52 +52,66 @@ var mapHeight = 6000;
 var players = [];
 var asteroids = [];
 var resources = [];
+var numAsteroids = 1000;
+var numResources = 1000;
 var idCounter = 0;
-var frameTime = 25;
+var frameDelay = 25;
 var KEY_CODES = {
   LEFT: 37,
   UP: 38,
   RIGHT: 39,
   DOWN: 40
 };
+var TO_RADIANS = Math.PI/180; 
 
 io.on('connection', function(socket) {
-  console.log('a user connected');
+  console.log('A user connected. There are now '+(players.length+1).toString()+' players.');
   var player = new Player(socket.id,'Bob');
   players.push(player);
+
   socket.on('keyupdate', function(keyState) {
     if (typeof(player) != 'undefined') {
       player.keyState = keyState;
     }
   });
+  socket.on('disconnect', function() {
+    console.log('user disconnected');
+    if (typeof(player) != 'undefined') {
+      io.emit('remove player',player.id);
+      players.splice(players.indexOf(player), 1);
+    } 
+  });
 });
+
+genAsteroidsAndResources();
 
 http.listen(3000, function(){
   console.log('listening on *:3000');
 });
 
-var loop = setInterval(gameLoop,frameTime);
+var loop = setInterval(gameLoop,frameDelay);
 
 function genID() {
   return idCounter++;
 }
 
 function genAsteroidsAndResources() {
-  for (var i = 0; i < 10; i++) {
-    asteroids.push(new Asteroid(genID(),32+Math.random*(mapWidth-64),32+Math.random*(mapHeight-64)));
+  for (var i = 0; i < numAsteroids; i++) {
+    asteroids.push(new Asteroid(genID(),32+Math.random()*(mapWidth-64),32+Math.random()*(mapHeight-64)),Math.floor(Math.random()*360));
   }
-  for (var i = 0; i < 10; i++) {
-    resources.push(new Resource(genID(),32+Math.random*(mapWidth-64),32+Math.random*(mapHeight-64)));
+  for (var i = 0; i < numResources; i++) {
+    resources.push(new Resource(genID(),32+Math.random()*(mapWidth-64),32+Math.random()*(mapHeight-64)),'standard');
   }
 }
 
 function sendUpdates() {
   for (var i = 0; i < players.length; i++) {
-    var sock = io.sockets.connected[players[i].id];
+    var socket = io.sockets.connected[players[i].id];
     var gamedata = {players:players, asteroids:asteroids, resources:resources};
     // find out what each user should be able to see
-    if (typeof(sock) != 'undefined') {
-      sock.emit('gamedata',gamedata);
+    if (typeof(socket) != 'undefined') {
+      socket.emit('player',players[i]);
+      socket.emit('gamedata',gamedata);
     }
   }
 }
@@ -105,10 +119,19 @@ function sendUpdates() {
 function movePlayers() {
   for (var i = 0; i < players.length; i++) {
     var p = players[i];
+    p.state = 0;
     if (p.keyState[KEY_CODES.LEFT]) {
-      p.angle = (p.angle - p.rotation*(25/1000)) % 360
+      p.state = 1;
+      p.angle = (p.angle - p.rotationSpeed*(frameDelay/1000)) % 360;
+      if (p.angle < 0) p.angle += 360;
     } else if (p.keyState[KEY_CODES.RIGHT]) {
-      p.angle = (p.angle + p.rotation*(25/1000)) % 360
+      p.state = 2;
+      p.angle = (p.angle + p.rotationSpeed*(25/1000)) % 360;
+      if (p.angle < 0) p.angle += 360;
+    } else if (p.keyState[KEY_CODES.UP]) {
+      p.state = 3;
+      p.x = p.x + p.forwardSpeed*(frameDelay/1000)*Math.cos(TO_RADIANS*p.angle);
+      p.y = p.y + p.forwardSpeed*(frameDelay/1000)*Math.sin(TO_RADIANS*p.angle);
     }
   }
 }

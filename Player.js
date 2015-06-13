@@ -1,15 +1,16 @@
 function Player(id,name) {
   this.id = id;
-  this.x = 0;
-  this.y = 0;
-  this.angle = 0;
+  this.x = 3000;
+  this.y = 3000;
+  this.angle = 270;
   this.name = name;
-  this.forwardSpeed = 20; // px/sec
+  this.forwardSpeed = 100; // px/sec
   this.rotationSpeed = 160; // deg/sec
   this.lastMovedTime = 0;
   this.ping = 0;
   this.pingStart = 0;
   this.keyState = {};
+  this.state = 0;
 
   return {
     id: this.id,
@@ -17,11 +18,13 @@ function Player(id,name) {
     y: this.y,
     angle: this.angle,
     name: this.name,
-    speed: this.speed,
+    forwardSpeed: this.forwardSpeed,
+    rotationSpeed: this.rotationSpeed,
     lastMovedTime: this.lastMovedTime,
     ping: this.ping,
     pingStart: this.pingStart,
-    keyState: this.keyState
+    keyState: this.keyState,
+    state: this.state
   }
 }
 exports.Player = Player;
