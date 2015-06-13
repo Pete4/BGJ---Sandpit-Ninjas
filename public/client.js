@@ -1,6 +1,6 @@
 "use strict"
 //Game objects
-var player = {angle:270, fuel:100, junk:0};
+var player = {angle:270, fuel:100, junk:0, health:100, shield:0};
 var players = []; // other players
 var asteroids = [];
 var resources = [];
@@ -221,7 +221,7 @@ function drawUI() {
     ctx.fillText(pingText, 30, 60);
     var healthText = "Health: " + player.health;
     ctx.fillText(healthText, 30, 120);
-    var shieldText = "Sheild: " + player.sheild;
+    var shieldText = "Shield: " + player.shield;
     ctx.fillText(shieldText, 30, 180);
 	
 	//Display fuel
