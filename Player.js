@@ -1,6 +1,7 @@
 function Player(id) {
   this.x = 0;
   this.y = 0;
+  this.angle = 0;
   this.name = name;
   this.id = id;
   this.speed;
@@ -11,6 +12,7 @@ function Player(id) {
   return {
     x: this.x,
     y: this.y,
+    angle: this.angle,
     name: this.name,
     id: this.id,
     speed: this.speed,
