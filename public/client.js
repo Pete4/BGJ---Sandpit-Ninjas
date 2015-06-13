@@ -174,6 +174,11 @@ function drawResourcesAndAsteroids() {
 		var coords = getLocalCoords(asteroids[i].x, asteroids[i].y);
 		ctx.drawImage(asteroidImage, coords.x-16, coords.y-16, 64, 64);
 	}
+	var coords = getLocalCoords(0,0);
+	if (coords.x > -231 && coords.x < canvas.width+231 && coords.y > -46 && coords.y < canvas.height+46) {
+		ctx.drawImage(baseImage, coords.x-231, coords.y-46, 261, 91);
+	}
+		
 }
 
 function drawPlayers() {
@@ -227,7 +232,7 @@ function drawUI() {
 		}
 	}
 	if (fuelExcess != 0) {
-		if (fuelBars % 2 == 0) {
+		if (fuelBars % 2 == 1) {
 			ctx.drawImage(blueBarImage, 0, 0, 16*(fuelExcess/20), 32, 75 + ((fuelBars+1)*20), canvas.height-fuelHeightOffset, 16*(fuelExcess/20), 32);
 		} else {
 			ctx.drawImage(pinkBarImage, 0, 0, 16*(fuelExcess/20), 32, 75 + ((fuelBars+1)*20), canvas.height-fuelHeightOffset, 16*(fuelExcess/20), 32);
