@@ -74,7 +74,6 @@ io.on('connection', function(socket) {
   socket.on('keyupdate', function(keyState) {
     if (typeof(player) != 'undefined') {
       player.keyState = keyState;
-      console.log('keyupdate');
       player.lastMovedTime = Date.now();
     }
   });
