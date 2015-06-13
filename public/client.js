@@ -169,7 +169,7 @@ function stopSoundEffects() {
 function drawObjects() {
 	//Draw spawn
 	var coords = getLocalCoords(0, 0);
-	ctx.drawImage(asteroidImage, coords.x-341, coords.y-247, 683, 593);
+	ctx.drawImage(spawnImage, coords.x-341, coords.y-247, 683, 593);
 	
 	//Draw resources and asteroids
 	for (var i = 0; i < resources.length; i++) {
