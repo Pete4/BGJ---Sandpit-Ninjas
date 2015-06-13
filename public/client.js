@@ -11,6 +11,7 @@ var keyState = {};
 var socket;
 var frameDelay = 25;
 var lastMovedTime = Date.now();
+var name = 'Bob';
 
 // Load images
 var spaceshipStationary = new Image();
@@ -52,34 +53,62 @@ var KEY_CODES = {
 }
 var TO_RADIANS = Math.PI/180; 
 
+window.addEventListener('keydown',function(e){
+	if (usedKeys.indexOf(e.which) != -1 && !keyState[e.which]) {
+		keyState[e.which] = true;
+		socket.emit('keyupdate', keyState);
+		lastMovedTime = Date.now();
+	}
+},true);
+window.addEventListener('keyup',function(e){
+	if (usedKeys.indexOf(e.which) != -1 && keyState[e.which]) {
+		keyState[e.which] = false;
+		socket.emit('keyupdate', keyState);
+		lastMovedTime = Date.now();
+	}
+},true);
+window.addEventListener("resize", function(){
+	updateCanvasSize();
+},true);
+window.addEventListener("blur", function(){
+	keyState = {}
+});
+
 $(function() {
 	registerSocketHooks();
 	updateCanvasSize();
+	loadOverlay(false);
 	
 	//Start timed canvas updates for UI
 	setInterval(updateCanvas, frameDelay);
-	
-	window.addEventListener('keydown',function(e){
-		if (usedKeys.indexOf(e.which) != -1 && !keyState[e.which]) {
-			keyState[e.which] = true;
-			socket.emit('keyupdate', keyState);
-			lastMovedTime = Date.now();
-		}
-    },true);
-    window.addEventListener('keyup',function(e){
-		if (usedKeys.indexOf(e.which) != -1 && keyState[e.which]) {
-			keyState[e.which] = false;
-			socket.emit('keyupdate', keyState);
-			lastMovedTime = Date.now();
-		}
-    },true);
-    window.addEventListener("resize", function(){
-		updateCanvasSize();
-    },true);
-	window.addEventListener("blur", function(){
-		keyState = {}
-	});
 });
+
+function start() {
+	name = $("#start-popup-name")[0].value;
+	socket.emit('start', name);
+	socket.on('validation response', function(response){
+		if (response.answer == true) {
+			$('#start-popup').popup('hide');
+		} else {
+			$('#game-popup-response').html(response.message);
+		}
+    });
+}
+
+function loadOverlay(died) {
+	if (died){
+		$('#game-popup-response').html("You died!");
+	}
+	$('#game-popup-response').html("");
+	
+	$('#start-popup').removeClass('hidden');
+	$('#start-popup').popup({
+		transition: 'all 0.3s',
+		autoopen: true,
+		escape: false,
+		blur: false
+	});
+}
 
 function updateCanvasSize() {
 	canvas.height = $(window).height();
@@ -178,7 +207,7 @@ function drawObjects() {
 	}
 	for (var i = 0; i < asteroids.length; i++) {
 		var coords = getLocalCoords(asteroids[i].x, asteroids[i].y);
-		ctx.drawImage(asteroidImage, coords.x-16, coords.y-16, 64, 64);
+		ctx.drawImage(asteroidImage, coords.x-(asteroids[i].width/2), coords.y-(asteroids[i].height/2), asteroids[i].width, asteroids[i].height);
 	}
 }
 

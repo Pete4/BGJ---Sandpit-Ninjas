@@ -9,11 +9,22 @@
 		<link rel="stylesheet" href="style.css" type="text/css" />
 		
 		<script src="jquery.js"></script>
+		<script src="jquery.popupoverlay.js"></script>
 		<script src="http://cdn.socket.io/socket.io-1.2.0.js"></script>
 	</head>
 	
 	<body>
 		<canvas id="game-canvas"></canvas>
+		
+		<div id="start-popup" class="light-grey-background hidden">
+			<p id="game-popup-response"></p>
+			<hr>
+			<p>Your Name:</p>
+			<input id="start-popup-name" type="text" name="name" value="Bob"></input>
+			
+			<button id="join-game" class="white-background button" onclick="start()">Join Game</button>
+
+		</div>
 		
 		<script src="client.js"></script>
 	</body>
