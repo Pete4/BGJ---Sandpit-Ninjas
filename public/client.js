@@ -63,6 +63,7 @@ function registerSocketHooks() {
 		players = p;
 	})
 	socket.on('gamedata', function(obj) {
+		console.log("Game data received: "+obj);
 		players = obj.players;
 		asteroids = obj.asteroids;
 	})
