@@ -13,8 +13,8 @@ spaceshipRight.src = 'images/FirstSpace_LeftFlame.png';
 spaceshipForward.src = 'images/FirstSpace.png';
 
 $(function() {
-	$("#game-canvas").css('height', $(window).height());
-	$("#game-canvas").css('width', $(window).width());
+	canvas.height = $(window).height();
+	canvas.width = $(window).width();
 	
 	//registerSocketHooks();
 	
@@ -41,8 +41,7 @@ function registerSocketHooks() {
 
 function updateCanvas() {
 	//Draw spaceship based on movement
-	ctx.drawImage(spaceshipStationary,canvas.width/2-32,canvas.height/2-32, 64, 64);
-	//ctx.drawImage(spaceshipStationary,5,20, 64, 64);
+	ctx.drawImage(spaceshipStationary, canvas.width/2-32, canvas.height/2-32);
 	//Set rotation if applicable
 	
 }
