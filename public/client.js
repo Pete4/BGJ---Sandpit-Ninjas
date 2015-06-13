@@ -5,6 +5,7 @@ var canvas = $("#game-canvas")[0];
 var ctx = canvas.getContext("2d");
 var keyState = {};
 var curRotation = 0;
+
 var spaceshipStationary = new Image();
 var spaceshipLeft = new Image();
 var spaceshipRight = new Image();
@@ -14,7 +15,11 @@ spaceshipLeft.src = 'images/FirstSpace_RightFlame.png';
 spaceshipRight.src = 'images/FirstSpace_LeftFlame.png';
 spaceshipForward.src = 'images/FirstSpace.png';
 
+//var audio = new Audio('audio_file.mp3');
+//audio.play();
+
 //Utilities
+var usedKeys = [37, 38, 39, 40];
 KEY_CODES = {
   LEFT: 37,
   UP: 38,
@@ -27,16 +32,22 @@ $(function() {
 	canvas.height = $(window).height();
 	canvas.width = $(window).width();
 	
-	//registerSocketHooks();
+	registerSocketHooks();
 	
 	//Start timed canvas updates for UI
 	setInterval(updateCanvas, 25);
 	
 	window.addEventListener('keydown',function(e){
-		keyState[e.keyCode || e.which] = true;
+		if (usedKeys.indexOf(e.which) != -1) {
+			keyState[e.which] = true;
+			socket.emit('keyupdate', keyState);
+		}
     },true);
     window.addEventListener('keyup',function(e){
-		keyState[e.keyCode || e.which] = false;
+		if (usedKeys.indexOf(e.which) != -1) {
+			keyState[e.which] = false;
+			socket.emit('keyupdate', keyState);
+		}
     },true);
 });
 
