@@ -216,10 +216,8 @@ function drawUI() {
 	
 	//Display fuel
 	var fuelHeightOffset = 90;
-	//var bars = Math.ceil(player.fuel/20);
-	//var fuelExcess = player.fuel % 20;
-	var fuelBars = Math.floor(5);
-	var fuelExcess = 15 % 20;
+	var fuelBars = Math.floor(player.fuel/20);
+	var fuelExcess = player.fuel % 20;
 	ctx.drawImage(fuelImage, 20, canvas.height-fuelHeightOffset);
 	for (var i = 1; i <= fuelBars; i++) {
 		if (i % 2 == 0) {
@@ -238,9 +236,8 @@ function drawUI() {
 	
 	//Display cargo
 	var junkHeightOffset = 50;
-	var junkBars = 5;
 	ctx.drawImage(junkImage, 20, canvas.height-junkHeightOffset);
-	for (var i = 1; i <= junkBars; i++) {
+	for (var i = 1; i <= player.junk; i++) {
 		if (i % 2 == 0) {
 			ctx.drawImage(blueBarImage, 75 + (i*20), canvas.height-junkHeightOffset);
 		} else {
