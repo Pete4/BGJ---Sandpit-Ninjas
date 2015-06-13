@@ -5,6 +5,8 @@ function Player(id,name) {
   this.angle = 270;
   this.name = name;
   this.canvasSize = {width:1980,height:1024};
+  this.fuel = 100;
+  this.junk = 0;
   this.forwardSpeed = 100; // px/sec
   this.rotationSpeed = 160; // deg/sec
   this.lastMovedTime = Date.now();
@@ -20,6 +22,8 @@ function Player(id,name) {
     angle: this.angle,
     name: this.name,
     canvasSize: this.canvasSize,
+    fuel: this.fuel,
+    junk: this.junk,
     forwardSpeed: this.forwardSpeed,
     rotationSpeed: this.rotationSpeed,
     lastMovedTime: this.lastMovedTime,

@@ -56,7 +56,7 @@ var numAsteroids = 1000;
 var numResources = 1000;
 var gridSize = 500;
 var idCounter = 0;
-var frameDelay = 35;
+var frameDelay = 25;
 var KEY_CODES = {
   LEFT: 37,
   UP: 38,
@@ -125,14 +125,17 @@ function movePlayers() {
     var delta = (Date.now()-p.lastMovedTime)/1000.0;
     
     if (p.keyState[KEY_CODES.LEFT]) {
+      p.fuel -= delta;
       p.state = 1;
       p.angle = (p.angle - p.rotationSpeed*delta) % 360;
       if (p.angle < 0) p.angle += 360;
     } else if (p.keyState[KEY_CODES.RIGHT]) {
+      p.fuel -= delta;
       p.state = 2;
       p.angle = (p.angle + p.rotationSpeed*delta) % 360;
       if (p.angle < 0) p.angle += 360;
     } else if (p.keyState[KEY_CODES.UP]) {
+      p.fuel -= delta;
       p.state = 3;
       p.x += p.forwardSpeed*delta*Math.cos(TO_RADIANS*p.angle);
       p.y += p.forwardSpeed*delta*Math.sin(TO_RADIANS*p.angle);
@@ -157,7 +160,7 @@ function sortObjectsIntoGrids(objects) {
     grids.push(gridCol);
   }
   for (var i = 0; i < objects.length; i++) {
-    grids[Math.floor(objects[i].x/gridSize)][Math.floor(objects[i].y/gridSize)].push(i);
+    grids[Math.floor(objects[i].x/gridSize)][Math.floor(objects[i].y/gridSize)].push(objects[i]);
   }
   return grids;
 }
@@ -174,17 +177,18 @@ function sendUpdates() {
     var playersToSend = [];
     var asteroidsToSend = [];
     var resourcesToSend = [];
-    var startXGrid = Math.floor((players[i].x-(players[i].canvasSize.width/2))/gridSize);
-    var endXGrid = Math.floor((players[i].x+(players[i].canvasSize.width/2))/gridSize);
-    var startYGrid = Math.floor((players[i].y-(players[i].canvasSize.height/2))/gridSize);
-    var endYGrid = Math.floor((players[i].y+(players[i].canvasSize.height/2))/gridSize);
+    var startXGrid = Math.max(Math.floor((players[i].x-(players[i].canvasSize.width/2))/gridSize),0);
+    var endXGrid = Math.min(Math.floor((players[i].x+(players[i].canvasSize.width/2))/gridSize),Math.floor((mapWidth-1)/gridSize));
+    var startYGrid = Math.max(Math.floor((players[i].y-(players[i].canvasSize.height/2))/gridSize),0);
+    var endYGrid = Math.min(Math.floor((players[i].y+(players[i].canvasSize.height/2))/gridSize),Math.floor((mapWidth-1)/gridSize));
     for (var x = startXGrid; x <= endXGrid; x++) {
       for (var y = startYGrid; y <= endYGrid; y++) {
-        playersToSend.concat(gridPlayers[x][y]);
-        asteroidsToSend.concat(gridAsteroids[x][y]);
-        resourcesToSend.concat(gridResources[x][y]);
+        playersToSend = playersToSend.concat(gridPlayers[x][y]);
+        asteroidsToSend = asteroidsToSend.concat(gridAsteroids[x][y]);
+        resourcesToSend = resourcesToSend.concat(gridResources[x][y]);
       }
     }
+    console.log(asteroidsToSend.length)
     var gamedata = {players:playersToSend, asteroids:asteroidsToSend, resources:resourcesToSend};
 
     // Send updates
@@ -196,6 +200,8 @@ function sendUpdates() {
 }
 
 function gameLoop() {
-  movePlayers();
-  sendUpdates();
+  if (players.length != 0) {
+    movePlayers();
+    sendUpdates();
+  }
 }
