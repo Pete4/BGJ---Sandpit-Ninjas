@@ -43,18 +43,28 @@ function inSite(file) {
   return starts(real,site);
 }
 
+// GAME CODE STARTS HERE //
+
 var mapWidth = 6000;
 var mapHeight = 6000;
 var players = [];
 var asteroids = [];
 var resources = [];
 var idCounter = 0;
+var frameTime = 25;
+var KEY_CODES = {
+  LEFT: 37,
+  UP: 38,
+  RIGHT: 39,
+  DOWN: 40
+}
 
 io.on('connection', function(socket) {
   console.log('a user connected');
   var player = new Player(socket.id)
   players.push(player);
-  socket.on('key update', function(keyState) {
+  socket.on('keyupdate', function(keyState) {
+    console.log('keyupdate')
     if (typeof(player) != 'undefined') {
       player.keyState = keyState;
     }
@@ -65,7 +75,7 @@ http.listen(3000, function(){
   console.log('listening on *:3000');
 });
 
-var loop = setInterval(gameLoop, 25);
+var loop = setInterval(gameLoop,frameTime);
 
 function genID() {
   return idCounter++;
@@ -91,6 +101,18 @@ function sendUpdates() {
   }
 }
 
+function movePlayers() {
+  for (var i = 0; i < players.length; i++) {
+    p = players[i];
+    if (p.keyState[KEY_CODES.LEFT]) {
+      p.angle = (p.angle - p.rotation*(25/1000)) % 360
+    } else if (keyState[KEY_CODES.RIGHT]) {
+      p.angle = (p.angle + p.rotation*(25/1000)) % 360
+    }
+  }
+}
+
 function gameLoop() {
+  movePlayers();
   sendUpdates();
 }

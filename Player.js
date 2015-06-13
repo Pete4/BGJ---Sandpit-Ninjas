@@ -4,7 +4,8 @@ function Player(id) {
   this.y = 0;
   this.angle = 0;
   this.name = name;
-  this.speed;
+  this.forwardSpeed = 20; // px/sec
+  this.rotationSpeed = 160; // deg/sec
   this.lastMovedTime = 0;
   this.ping = 0;
   this.pingStart = 0;
