@@ -7,6 +7,10 @@ function Player(id,name) {
   this.canvasSize = {width:1980,height:1024};
   this.fuel = 100;
   this.junk = 0;
+  this.health = 100;
+  this.shield = 0;
+  this.width = 64;
+  this.height = 64;
   this.forwardSpeed = 100; // px/sec
   this.rotationSpeed = 160; // deg/sec
   this.lastMovedTime = Date.now();
@@ -24,6 +28,10 @@ function Player(id,name) {
     canvasSize: this.canvasSize,
     fuel: this.fuel,
     junk: this.junk,
+    health: this.health,
+    shield: this.shield,
+    width: this.width,
+    height: this.height,
     forwardSpeed: this.forwardSpeed,
     rotationSpeed: this.rotationSpeed,
     lastMovedTime: this.lastMovedTime,
@@ -31,6 +39,6 @@ function Player(id,name) {
     pingStart: this.pingStart,
     keyState: this.keyState,
     state: this.state
-  }
+  };
 }
 exports.Player = Player;

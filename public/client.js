@@ -214,11 +214,15 @@ function updateCanvas() {
 }
 
 function drawUI() {
-	//Display ping
-    var pingText = "Ping: " + player.ping;
+	//Display ping, health and sheilds (temporary).
     ctx.font = 'italic 40pt Calibri';
 	ctx.fillStyle="#2ecc71";
+	var pingText = "Ping: " + player.ping;
     ctx.fillText(pingText, 30, 60);
+    var healthText = "Health: " + player.health;
+    ctx.fillText(healthText, 30, 120);
+    var shieldText = "Sheild: " + player.sheild;
+    ctx.fillText(shieldText, 30, 180);
 	
 	//Display fuel
 	var fuelHeightOffset = 90;
