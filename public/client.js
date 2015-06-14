@@ -59,6 +59,7 @@ var audioCrash = new Audio('sound/crash.mp3');
 var audioCollectJunk = new Audio('sound/collect_junk.mp3');
 var audioGameOver = new Audio('sound/gameover.mp3');
 var audioMusic_SuperTechno = new Audio('sound/music_spacetechno.mp3');
+var audioError = new Audio('sound/error.mp3');
 
 //Utilities
 var usedKeys = [37, 38, 39, 40];
@@ -218,6 +219,8 @@ function checkForCollosions(p,objects) {
 					audioCollectJunk.play();
 					o.health -= 100;
 					p.junk += 1;
+				} else {
+					audioError.play();
 				}
 			} else if (o.type == 'asteroid') {
 				audioCrash.play();
@@ -292,6 +295,10 @@ function drawPlayers() {
 			ctx.rotate((players[i].angle+90)*TO_RADIANS);
 			ctx.drawImage(spaceship[players[i].state], -32, -32, 64, 64);
 			ctx.restore();
+			ctx.fillStyle = '#fff';
+			ctx.textAlign = 'center';
+			ctx.font="bold 16px Arial";
+			ctx.fillText(players[i].name, coords.x,coords.y-35);
 		}
 	}
 	
@@ -301,6 +308,10 @@ function drawPlayers() {
     ctx.rotate((player.angle+90)*TO_RADIANS);
 	ctx.drawImage(spaceship[state], -32, -32, 64, 64);
     ctx.restore();
+	ctx.fillStyle = '#fff';
+	ctx.textAlign = 'center';
+	ctx.font="bold 16px Arial";
+	ctx.fillText(player.name, canvas.width/2, canvas.height/2-35);
 }
 
 function updateCanvas() {
@@ -375,6 +386,9 @@ function drawUI() {
 	var fuelBars = Math.floor(player.fuel/20);
 	var fuelExcess = player.fuel % 20;
 	ctx.drawImage(fuelImage, 20, canvas.height-fuelHeightOffset);
+	if (fuelBars < 1) {
+		audioError.play();
+	}
 	for (var i = 1; i <= fuelBars; i++) {
 		if (i % 2 == 0) {
 			ctx.drawImage(blueBarImage, 110 + (i*20), canvas.height-fuelHeightOffset);
