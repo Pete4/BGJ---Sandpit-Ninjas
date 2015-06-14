@@ -132,6 +132,14 @@ function loadOverlay(died) {
 	});
 }
 
+function loadShop() {
+	$('#shop-popup').removeClass('hidden');
+	$('#shop-popup').popup({
+		transition: 'all 0.3s',
+		autoopen: true
+	});
+}
+
 function updateCanvasSize() {
 	canvas.height = $(window).height();
 	canvas.width = $(window).width();
@@ -179,6 +187,7 @@ function movePlayer(p) {
 	var delta = (Date.now()-lastMovedTime)/1000.0;
 	if (Date.now() - lastCollisionTime > 500) {
 	    if (p.keyState[KEY_CODES.LEFT]) {
+			//loadShop();
 			playShipSoundEffect(p);
 			state = 1;
 			p.angle = (p.angle - p.rotationSpeed*delta) % 360;
@@ -196,7 +205,6 @@ function movePlayer(p) {
 			p.y += p.forwardSpeed*delta*Math.sin(TO_RADIANS*p.angle);
 	    } else {
 			if (state != 0) {
-				console.log('played stop sound');
 				stopShipSoundEffects();
 				audioEngineStop.play();
 			}
@@ -339,7 +347,36 @@ function drawUI() {
 	ctx.fillStyle="#fff";
 	ctx.font="12px Arial";
 	var pingText = "Ping: " + player.ping;
-    ctx.fillText(pingText, 20, 30);
+    ctx.fillText(pingText, 38, 30);
+	
+	//Display leaderboard
+	ctx.textAlign = 'left';
+	ctx.font="bold 25px Arial";
+	ctx.fillText('Leaderboard', canvas.width-235,50);
+	ctx.font="18px Arial";
+	ctx.fillText('1. Simo389', canvas.width-270,85);
+	ctx.fillText('437574', canvas.width-90,85);
+	ctx.fillText('2. ediqin', canvas.width-270,115);
+	ctx.fillText('33655', canvas.width-90,115);
+	ctx.fillText('3. Gazz', canvas.width-270,145);
+	ctx.fillText('26338', canvas.width-90,145);
+	ctx.fillText('4. Simo389', canvas.width-270,175);
+	ctx.fillText('10794', canvas.width-90,175);
+	ctx.fillText('5. ediqin', canvas.width-270,205);
+	ctx.fillText('5042', canvas.width-90,205);
+	ctx.fillText('6. Gazz', canvas.width-270,235);
+	ctx.fillText('890', canvas.width-90,235);
+	ctx.fillText('7. Simo389', canvas.width-270,265);
+	ctx.fillText('735', canvas.width-90,265);
+	ctx.fillText('8. MMMMMMMMMM', canvas.width-270,295);
+	ctx.fillText('537', canvas.width-90,295);
+	ctx.fillText('9. Gazz', canvas.width-270,325);
+	ctx.fillText('100', canvas.width-90,325);
+	ctx.fillText('10. Simo389', canvas.width-270,355);
+	ctx.fillText('40', canvas.width-90,355);
+	/*for () {
+		
+	}*/
 	
 	//Display shield
 	var shieldHeightOffset = 170;
