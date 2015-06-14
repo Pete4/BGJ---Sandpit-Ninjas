@@ -609,9 +609,11 @@ function sendUpdates() {
 }
 
 function findBelt(object) {
-  var dist = Math.sqrt(object.x*object.x + object.y*object.y);
-  for (var j = 0; j < asteroidBelts.length; j++) {
-    if (dist >= asteroidBelts[j][0] && dist <= asteroidBelts[j][1]) return j;
+  if (typeof(object) != 'undefined') {
+    var dist = Math.sqrt(object.x*object.x + object.y*object.y);
+    for (var j = 0; j < asteroidBelts.length; j++) {
+      if (dist >= asteroidBelts[j][0] && dist <= asteroidBelts[j][1]) return j;
+    }
   }
   return 0;
 }
