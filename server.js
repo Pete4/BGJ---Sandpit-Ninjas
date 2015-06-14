@@ -59,18 +59,17 @@ var healthLimit = 100;
 var shieldLimit = 200;
 var numResources = 200;
 var asteroidBelts = [
-  [ 500,1000 ,0.00002,0.00001,0,360],
-  [1000,1100 ,0.0004 ,0.     ,0,360], /* Thick belt */
-  [1100,2000 ,0.00006,0.00006,0,360],
-  [2000,2100 ,0.0004 ,0      ,0,360], /* Thick belt */
-  [2100,3000 ,0.0001 ,0.0001 ,0,360],
-  [3000,3100 ,0.0004 ,0      ,0,360], /* Thick belt */
-  [3100,4000 ,0.0002 ,0.0004 ,0,360]];
-/*,
-  [4000,4100 ,0.0004 ,0      ,0,360],
-  [4100,9500 ,0.0003 ,0.0004 ,0,360],
-  [9500,10000,0.0004 ,0      ,0,360],
-];*/
+  [ 500,1000 ,0.00002,0.00001,1],
+  [1000,1100 ,0.0004 ,0.     ,1], /* Thick belt */
+  [1100,2000 ,0.00006,0.00006,1],
+  [2000,2100 ,0.0004 ,0      ,1], /* Thick belt */
+  [2100,3000 ,0.0001 ,0.0001 ,1],
+  [3000,3100 ,0.0004 ,0      ,0], /* Thick belt */
+  [3100,4000 ,0.0002 ,0.0004 ,0],
+  [4000,4100 ,0.0004 ,0      ,0],
+  [4100,9500 ,0.0003 ,0.0004 ,0],
+  [9500,10000,0.0004 ,0      ,0],
+];
 var baseRadius = 300;
 var baseShieldRadius = 400
 var junkPrice = 10;
@@ -264,19 +263,21 @@ function genID() {
 function genAsteroidsAndResources() {
   for (var i = 0; i < asteroidBelts.length; i++) {
     var b = asteroidBelts[i];
-    var width = b[1]-b[0];
-    var area = Math.PI*(b[1]*b[1] - b[0]*b[0]);
-    var numAsteroids = area*b[2];
-    var numResources = area*b[3];
-    for (var j = 0; j < numAsteroids; j++) {
-      var r = Math.random()*(b[1]-b[0])+b[0];
-      var angle = Math.floor(Math.random()*360);
-      asteroids.push(new Asteroid(genID(),r*Math.cos(angle),r*Math.sin(angle),Math.floor(Math.random()*360),i));
-    }
-    for (var j = 0; j < numResources; j++) {
-      var r = Math.random()*(b[1]-b[0])+b[0];
-      var angle = Math.floor(Math.random()*360);
-      resources.push(new Resource(genID(),r*Math.cos(angle),r*Math.sin(angle),'standard',i));
+    if (b[4]) {
+      var width = b[1]-b[0];
+      var area = Math.PI*(b[1]*b[1] - b[0]*b[0]);
+      var numAsteroids = area*b[2];
+      var numResources = area*b[3];
+      for (var j = 0; j < numAsteroids; j++) {
+        var r = Math.random()*(b[1]-b[0])+b[0];
+        var angle = Math.random()*360;
+        asteroids.push(new Asteroid(genID(),r*Math.cos(angle),r*Math.sin(angle),Math.random()*360,i,Math.floor(Math.random()*3)));
+      }
+      for (var j = 0; j < numResources; j++) {
+        var r = Math.random()*(b[1]-b[0])+b[0];
+        var angle = Math.random()*360;
+        resources.push(new Resource(genID(),r*Math.cos(angle),r*Math.sin(angle),'standard',i));
+      }
     }
   }
 }
@@ -428,6 +429,7 @@ function calculateRequiredObjects(p,gridPlayers,gridAsteroids,gridResources,grid
 }
 
 function checkForCollosions(p,objects) {
+  var socket = io.sockets.connected[p.id];
   for (var i = 0; i < objects.length; i++) {
     var o = objects[i];
     var xDiff = p.x - o.x;
@@ -439,10 +441,12 @@ function checkForCollosions(p,objects) {
         if (p.starterShip) var junkCapacity = junkCapacities[STARTER_SHIP];
         else var junkCapacity = junkCapacities[p.holdLevel+1];
         if (junkCapacity > p.junk) {
+          socket.emit('junkpickup',true);
           o.health -= 20;
           p.junk += 1;
-        }
+        } 
       } else if (o.type == 'asteroid') {
+        socket.emit('asteroidHit',true);
         o.health -= 20;
         p.lastCollisionTime = Date.now();
         if (p.shield >= 20) p.shield -= 20;
@@ -526,6 +530,7 @@ function sendUpdates() {
       if (asteroids[ind].health <= 0) {
         if (asteroids[ind].timeOfDeath == null) {
           asteroids[ind].timeOfDeath = Date.now();
+          socket.emit('asteroidHit',true);
         } else {
           asteroids[ind].timeSinceDeath = Date.now() - asteroids[ind].timeOfDeath;
         }
@@ -614,6 +619,10 @@ function clearJunk() {
         p.score = Math.floor(p.furthestDistance);
       }
       p.furthestDistance = 0;
+      if (p.junk > 0) {
+        var socket = io.sockets.connected[p.id];
+        socket.emit('moneyaudio',true);
+      } 
       p.cash += p.junk*junkPrice;
       p.junk = 0;
       if (!p.hitShop && p.x*p.x + p.y*p.y < baseRadius*baseRadius) {
@@ -629,6 +638,8 @@ function clearJunk() {
 }
 
 function regenObjects() {
+  var regions = [];
+
 
   //var belts = []
   //for (var i = 0; i < asteroids; i++) {

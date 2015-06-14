@@ -1,4 +1,4 @@
-function Asteroid(id,x,y,angle,ind) {
+function Asteroid(id,x,y,angle,ind,imageNum) {
   this.id = id;
   this.ind = ind;
   this.x = x;
@@ -10,6 +10,7 @@ function Asteroid(id,x,y,angle,ind) {
   this.timeOfDeath = null;
   this.timeSinceDeath = null;
   this.type = 'asteroid';
+  this.imageNum = imageNum;
   
   return {
     id: this.id,
@@ -22,7 +23,8 @@ function Asteroid(id,x,y,angle,ind) {
     height: this.height,
     timeOfDeath: this.timeOfDeath,
     timeSinceDeath: this.timeSinceDeath,
-    type: this.type
+    type: this.type,
+    imageNum: this.imageNum
   };
 }
 exports.Asteroid = Asteroid;

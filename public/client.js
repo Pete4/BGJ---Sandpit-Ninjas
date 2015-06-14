@@ -35,9 +35,11 @@ var spaceshipRight = new Image(); spaceshipRight.src = 'images/FirstSpace_LeftFl
 var spaceshipForward = new Image(); spaceshipForward.src = 'images/FirstSpace.png';
 var spaceship = [spaceshipStationary,spaceshipLeft,spaceshipRight,spaceshipForward]; // useful format
 var asteroidImage = new Image; asteroidImage.src = 'images/Asteroid.png';
+var asteroidImage2 = new Image; asteroidImage2.src = 'images/Asteroid2.png';
+var asteroidImage3 = new Image; asteroidImage3.src = 'images/Asteroid3.png';
 var asteroidHalfExpImage = new Image; asteroidHalfExpImage.src = 'images/AsteroidHalfExplode.png';
 var asteroidExpImage = new Image; asteroidExpImage.src = 'images/AsteroidExplode.png';
-var asteroid = [asteroidImage,asteroidHalfExpImage,asteroidExpImage];
+var asteroid = [[asteroidImage,asteroidImage2,asteroidImage3],asteroidHalfExpImage,asteroidExpImage];
 var resourceImage = new Image; resourceImage.src = 'images/Resource.png';
 var missileImage = new Image; missileImage.src = 'images/RocketBlue.png';
 var missileExpImage = new Image; missileExpImage.src = 'images/AsteroidExplode.png';
@@ -246,9 +248,6 @@ function loadOverlay(died) {
 function loadShop() {
 	shopOpen = true;
 	updateDisplayedShopItems();
-	if (player.junk) {
-		if (!soundMuted) audioMoney.play();
-	}
 	$('#shop-popup').removeClass('hidden');
 	$('#shop-popup').popup({
 		transition: 'all 0.3s',
@@ -354,6 +353,15 @@ function registerSocketHooks() {
     });
 	socket.on('newmissile', function(response){
 		if (!soundMuted) audioMissile.play();
+    });
+    socket.on('junkpickup', function(response){
+        if (!soundMuted) audioCollectJunk.play();
+    });
+    socket.on('asteroidHit', function(response){
+        if (!soundMuted) audioCrash.play();
+    });
+    socket.on('moneyaudio', function(response){
+        if (!soundMuted) audioMoney.play();
     });
 }
 
@@ -475,14 +483,12 @@ function checkForCollosions(p,objects) {
         if (p.starterShip) var junkCapacity = junkCapacities[STARTER_SHIP];
         else var junkCapacity = junkCapacities[p.holdLevel+1];
         if (junkCapacity > p.junk) {
-		  if (!soundMuted) audioCollectJunk.play();
           o.health -= 20;
           p.junk += 1;
         } else {
 		  if (!soundMuted) audioError.play();
 		}
       } else if (o.type == 'asteroid') {
-		if (!soundMuted) audioCrash.play();
         o.health -= 20;
         p.lastCollisionTime = Date.now();
         if (p.shield >= 20) p.shield -= 20;
@@ -555,7 +561,7 @@ function drawObjects() {
 	    ctx.translate(coords.x,coords.y);
 	    ctx.rotate((asteroids[i].angle+90)*TO_RADIANS);
 		if (asteroids[i].timeOfDeath == null) {
-			ctx.drawImage(asteroid[0], -(asteroids[i].width/2), -(asteroids[i].height/2), asteroids[i].width, asteroids[i].height);
+			ctx.drawImage(asteroid[0][asteroids[i].imageNum], -(asteroids[i].width/2), -(asteroids[i].height/2), asteroids[i].width, asteroids[i].height);
 			//ctx.drawImage(asteroid[0], coords.x-(asteroids[i].width/2), coords.y-(asteroids[i].height/2), asteroids[i].width, asteroids[i].height);
 		}else {
 			ctx.drawImage(asteroid[1+Math.min(1,Math.floor(asteroids[i].timeSinceDeath/250))], -(asteroids[i].width/2), -(asteroids[i].height/2), asteroids[i].width, asteroids[i].height);
