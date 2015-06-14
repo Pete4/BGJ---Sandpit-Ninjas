@@ -346,8 +346,9 @@ function getScores() {
   }
 }
 
+
 function clearJunk() {
-  for (var i = 0; i < players.length; i++) {
+  for (var i = 1; i < players.length; i++) {
     var p = players[i];
     if (p.x*p.x + p.y*p.y < baseRadius*baseRadius) {
       p.cash += p.junk*junkPrice;
@@ -357,9 +358,9 @@ function clearJunk() {
 }
 
 function gameLoop() {
+  clearJunk();
   checkPlayers();
   movePlayers();
   getScores();
-  clearJunk();
   sendUpdates();
 }
