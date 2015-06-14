@@ -18,6 +18,7 @@ var lastCollisionTime = 0;
 var state = 0;
 var shipAudioStartTime = Date.now();
 var shopOpen = true;
+var soundMuted = false;
 
 //Load images
 var spaceshipStationary = new Image(); spaceshipStationary.src = 'images/FirstSpace_NoFlame.png';
@@ -38,6 +39,7 @@ var blueBarImage = new Image; blueBarImage.src = 'images/BlueBar.png';
 var pinkBarImage = new Image; pinkBarImage.src = 'images/PinkBar.png';
 var blueWideBarImage = new Image; blueWideBarImage.src = 'images/BlueWideBar.png';
 var spawnImage = new Image; spawnImage.src = 'images/spawn.png';
+var arrowImage = new Image; arrowImage.src = 'images/Arrow.png';
 
 //Modular ship images
 var shipCockpit = new Image(); shipCockpit.src = 'images/ShipCockpit.png';
@@ -66,6 +68,7 @@ var audioGameOver = new Audio('sound/gameover.mp3');
 var audioMusic_SuperTechno = new Audio('sound/music_spacetechno.mp3');
 var audioError = new Audio('sound/error.mp3');
 var audioMoney = new Audio('sound/error.mp3');
+var audioUpgrade = new Audio('sound/upgrade.mp3');
 
 //Utilities
 var usedKeys = [37, 38, 39, 40];
@@ -111,6 +114,15 @@ $(function() {
 	//setInterval(playMusic, 26550);
 });
 
+function toggleMute() {
+	if (soundMuted) {
+		soundMuted = false;
+	} else {
+		soundMuted = true;
+	}
+	$('.audio-mute').toggleClass('hidden');
+}
+
 function start() {
 	name = $("#start-popup-name")[0].value;
 	socket.emit('start', name);
@@ -126,6 +138,7 @@ function start() {
 function loadOverlay(died) {
 	$('#game-popup-response').html("");
 	if (died){
+		$('#shop-popup').popup('hide');
 		$('#game-popup-response').html("You died!");
 		audioGameOver.play();
 	}
@@ -196,6 +209,7 @@ function upgradeShield() {
 	socket.on('upgradeshield', function(response){
 		if (response.answer == true) {
 			audioMoney.play();
+			audioUpgrade.play();
 		} else {
 			audioError.play();
 		}
@@ -209,6 +223,7 @@ function upgradeShip() {
 		if (response.answer == true) {
 			player.starterShip = false;
 			audioMoney.play();
+			audioUpgrade.play();
 		} else {
 			audioError.play();
 		}
@@ -221,6 +236,20 @@ function upgradeHold() {
 	socket.on('upgradehold', function(response){
 		if (response.answer == true) {
 			audioMoney.play();
+			audioUpgrade.play();
+		} else {
+			audioError.play();
+		}
+		updateDisplayedShopItems();
+    });
+}
+
+function upgradeWeapon() {
+	socket.emit('upgradeweapon', true);
+	socket.on('upgradeweapon', function(response){
+		if (response.answer == true) {
+			audioMoney.play();
+			audioUpgrade.play();
 		} else {
 			audioError.play();
 		}
@@ -502,12 +531,13 @@ function drawUI() {
 	}
 	
 	//Display fuel
-	var fuelHeightOffset =240;
+	var fuelHeightOffset =260;
 	var fuelBars = Math.floor(player.fuel/20);
 	var fuelExcess = player.fuel % 20;
-	ctx.drawImage(fuelImage, 20, canvas.height-fuelHeightOffset);
 	if (fuelBars < 1) {
-		audioError.play();
+		$("#game-ui-text-fuel").addClass('flash');
+	} else {
+		$("#game-ui-text-fuel").removeClass('flash');
 	}
 	for (var i = 1; i <= fuelBars; i++) {
 		if (i % 2 == 0) {
@@ -525,10 +555,14 @@ function drawUI() {
 	}
 	
 	//Display health
-	var healthHeightOffset = 200;
+	var healthHeightOffset = 220;
 	var healthBars = Math.floor(player.health/20);
 	var healthExcess = player.health % 20;
-	ctx.drawImage(healthImage, 20, canvas.height-healthHeightOffset);
+	if (healthBars <= 1) {
+		$("#game-ui-text-health").addClass('flash');
+	} else {
+		$("#game-ui-text-health").removeClass('flash');
+	}
 	for (var i = 1; i <= healthBars; i++) {
 		if (i % 2 == 0) {
 			ctx.drawImage(blueBarImage, 110 + (i*20), canvas.height-healthHeightOffset);
@@ -545,7 +579,7 @@ function drawUI() {
 	}
 	
 	//Display shield
-	var shieldHeightOffset = 160;
+	var shieldHeightOffset = 180;
 	var shieldBars = Math.floor(player.shield/20);
 	var shieldExcess = player.health % 20;
 	ctx.drawImage(shieldImage, 20, canvas.height-shieldHeightOffset);
@@ -565,7 +599,7 @@ function drawUI() {
 	}
 	
 	//Display cargo
-	var junkHeightOffset = 120;
+	var junkHeightOffset = 140;
 	ctx.drawImage(junkImage, 20, canvas.height-junkHeightOffset);
 	for (var i = 1; i <= player.junk; i++) {
 		if (i % 2 == 0) {
@@ -576,5 +610,13 @@ function drawUI() {
 	}
 	
 	//Horizontal bar
-	ctx.drawImage(blueWideBarImage, 20, canvas.height-80);
+	ctx.drawImage(blueWideBarImage, 20, canvas.height-100);
+	
+	//Arrow
+	ctx.save();
+    ctx.translate(244,canvas.height-43);
+    ctx.rotate(Math.atan2(player.y, player.x)-Math.PI/2);
+	ctx.drawImage(arrowImage, -24, -37, 48, 75);
+    ctx.restore();
+	
 }

@@ -8,6 +8,7 @@
 		
 		<link rel="stylesheet" href="style.css" type="text/css" />
 		<link rel="stylesheet" href="hover.min.css" type="text/css" />
+		<link rel="stylesheet" href="animate.css" type="text/css" />
 		
 		<script src="jquery.js"></script>
 		<script src="jquery.popupoverlay.js"></script>
@@ -26,7 +27,6 @@
 				<input id="start-popup-name" type="text" name="name" value="Bob"></input>
 				<button id="join-game" class="white-background button" type="submit">Join Game</button>
 			</form>
-
 		</div>
 		
 		<div id="shop-popup" class="light-grey-background hidden">
@@ -131,6 +131,12 @@
 				</tr>
 			</table>
 		</div>
+		
+		<img id="game-ui-text-fuel" class="game-ui-text animated infinite" src="images/FuelIcon.png"></img>
+		<img id="game-ui-text-health" class="game-ui-text animated infinite" src="images/HealthIcon.png"></img>
+		
+		<img class="audio-mute grow" src="images/SoundIcon.png" onclick="toggleMute()"></img>
+		<img class="audio-mute grow hidden" src="images/SoundOffIcon.png" onclick="toggleMute()"></img>
 		
 		<script src="client.js"></script>
 	</body>
