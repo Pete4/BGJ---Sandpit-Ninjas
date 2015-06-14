@@ -296,7 +296,7 @@ function sendUpdates() {
     // Send updates
     if (typeof(socket) != 'undefined') {
       socket.emit('player',p);
-      objects.scores = scores;
+      objsToSend.scores = scores;
       socket.emit('gamedata',objsToSend);
     } else {
       console.log('Warning: Socket undefined.')
@@ -306,7 +306,7 @@ function sendUpdates() {
     var s = spectators[i];
     var socket = io.sockets.connected[s.id];
     var objsToSend = calculateRequiredObjects(s,gridPlayers,gridAsteroids,gridResources);
-    objects.scores = scores;
+    objsToSend.scores = scores;
     if (typeof(socket) != 'undefined') {
       socket.emit('gamedata',objsToSend);
     }
