@@ -17,6 +17,7 @@ var name = 'Bob';
 var lastCollisionTime = 0;
 var state = 0;
 var shipAudioStartTime = Date.now();
+var shopOpen = true;
 
 //Load images
 var spaceshipStationary = new Image();
@@ -61,6 +62,7 @@ var audioCollectJunk = new Audio('sound/collect_junk.mp3');
 var audioGameOver = new Audio('sound/gameover.mp3');
 var audioMusic_SuperTechno = new Audio('sound/music_spacetechno.mp3');
 var audioError = new Audio('sound/error.mp3');
+var audioMoney = new Audio('sound/error.mp3');
 
 //Utilities
 var usedKeys = [37, 38, 39, 40];
@@ -134,6 +136,7 @@ function loadOverlay(died) {
 }
 
 function loadShop() {
+	shopOpen = true;
 	$('#shop-popup').removeClass('hidden');
 	$('#shop-popup').popup({
 		transition: 'all 0.3s',
@@ -143,18 +146,46 @@ function loadShop() {
 
 function refillFuel() {
 	socket.emit('refillfuel', true);
+	socket.on('refillfuel', function(response){
+		if (response.answer == true) {
+			audioMoney.play();
+		} else {
+			audioError.play();
+		}
+    });
 }
 
 function refillHealth() {
 	socket.emit('refillhealth', true);
+	socket.on('refillhealth', function(response){
+		if (response.answer == true) {
+			audioMoney.play();
+		} else {
+			audioError.play();
+		}
+    });
 }
 
 function upgradeShield() {
 	socket.emit('upgradeshield', true);
+	socket.on('upgradeshield', function(response){
+		if (response.answer == true) {
+			audioMoney.play();
+		} else {
+			audioError.play();
+		}
+    });
 }
 
 function upgradeHold() {
 	socket.emit('upgradehold', true);
+	socket.on('upgradehold', function(response){
+		if (response.answer == true) {
+			audioMoney.play();
+		} else {
+			audioError.play();
+		}
+    });
 }
 
 function updateCanvasSize() {
@@ -205,7 +236,6 @@ function movePlayer(p) {
 	var delta = (Date.now()-lastMovedTime)/1000.0;
 	if (Date.now() - lastCollisionTime > 500) {
 	    if (p.keyState[KEY_CODES.LEFT]) {
-			loadShop();
 			playShipSoundEffect(p);
 			state = 1;
 			p.angle = (p.angle - p.rotationSpeed*delta) % 360;
@@ -294,7 +324,7 @@ function stopShipSoundEffects() {
 function drawObjects() {
 	//Draw spawn
 	var coords = getLocalCoords(0, 0);
-	ctx.drawImage(spawnImage, coords.x-341, coords.y-247, 683, 593);
+	ctx.drawImage(spawnImage, coords.x-300, coords.y-300, 600, 600);
 	
 	//Draw resources and asteroids
 	for (var i = 0; i < resources.length; i++) {
@@ -350,6 +380,16 @@ function updateCanvas() {
 	drawObjects();
 	drawPlayers();
 	drawUI();
+	
+	//Check if player is within spawn
+	
+	if (((player.x*player.x) + (player.y*player.y)) < 300*300) {
+		if (!shopOpen) {
+		loadShop();
+		}
+	} else {
+		shopOpen = false;
+	}
 
 	if (player.health <= 0) loadOverlay(true);
 }
