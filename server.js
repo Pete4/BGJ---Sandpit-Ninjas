@@ -54,6 +54,8 @@ var resources = [];
 var scores = [];
 var numAsteroids = 1000;
 var numResources = 200;
+var baseRadius = 300;
+var junkPrice = 10;
 var gridSize = 500;
 var idCounter = 0;
 var frameDelay = 35;
@@ -344,7 +346,19 @@ function getScores() {
   }
 }
 
+
+function clearJunk() {
+  for (var i = 1; i < players.length; i++) {
+    var p = players[i];
+    if (p.x*p.x + p.y*p.y < baseRadius*baseRadius) {
+      p.cash += p.junk*junkPrice;
+      p.junk = 0;
+    }
+  }
+}
+
 function gameLoop() {
+  clearJunk();
   checkPlayers();
   movePlayers();
   getScores();
