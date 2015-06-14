@@ -51,11 +51,12 @@ var spectators = [];
 var players = [];
 var asteroids = [];
 var resources = [];
+var scores = [];
 var numAsteroids = 1000;
 var numResources = 200;
 var gridSize = 500;
 var idCounter = 0;
-var frameDelay = 25;
+var frameDelay = 35;
 var KEY_CODES = {
   LEFT: 37,
   UP: 38,
@@ -267,9 +268,7 @@ function sendUpdates() {
 
   for (var i = 0; i < players.length; i++) {
     var p = players[i];
-    console.log(p.id)
     var socket = io.sockets.connected[p.id];
-    //console.log(p.id)
     
     // Find out what each user should be able to see
     var objsToSend = calculateRequiredObjects(p,gridPlayers,gridAsteroids,gridResources);
@@ -297,17 +296,17 @@ function sendUpdates() {
     // Send updates
     if (typeof(socket) != 'undefined') {
       socket.emit('player',p);
+      objects.scores = scores;
       socket.emit('gamedata',objsToSend);
     } else {
       console.log('Warning: Socket undefined.')
     }
   }
   for (var i = 0; i < spectators.length; i++) {
-    //console.log('spec')
     var s = spectators[i];
     var socket = io.sockets.connected[s.id];
     var objsToSend = calculateRequiredObjects(s,gridPlayers,gridAsteroids,gridResources);
-    //console.log(objsToSend)
+    objects.scores = scores;
     if (typeof(socket) != 'undefined') {
       socket.emit('gamedata',objsToSend);
     }
@@ -330,11 +329,24 @@ function checkPlayers() {
   }
 }
 
+function getScores() {
+  if (players.length != 0) {
+    scores = [[players[0].name,players[0].score]];
+    for (var i = 1; i < players.length; i++) {
+      for (var j = 0; j < scores.length + 1; j++) {
+        if (j == scores.length || players[i].score > scores[j][1]) {
+          scores.splice(j,0,[players[i].name,players[i].score]);
+          break;
+        }
+      }
+    }
+    scores = scores.splice(0,10);
+  }
+}
+
 function gameLoop() {
-  /*for (var i = 0; i < players.length; i++) {
-    console.log(players[i].id)
-  }*/
   checkPlayers();
   movePlayers();
+  getScores();
   sendUpdates();
 }
