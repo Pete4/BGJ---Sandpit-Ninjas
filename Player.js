@@ -19,7 +19,7 @@ function Player(id,name) {
   this.pingStart = 0;
   this.keyState = {};
   this.state = 0;
-  this.fuelCapacity = 100;
+  this.fuelCapacity = 60;
   this.hullCapacity = 5;
   this.gunDamage = 10;
   this.lastCollisionTime = 0;
