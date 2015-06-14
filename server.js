@@ -65,14 +65,14 @@ var asteroidBelts = [
   [2000,2100 ,0.0004 ,0      ,1], /* Thick belt */
   [2100,3000 ,0.0001 ,0.0001 ,1],
   [3000,3100 ,0.0004 ,0      ,0], /* Thick belt */
-  [3100,4000 ,0.0002 ,0.0004 ,0],
-  [4000,4100 ,0.0004 ,0      ,0],
-  [4100,9500 ,0.0003 ,0.0004 ,0],
-  [9500,10000,0.0004 ,0      ,0],
+  [3100,4300 ,0.0002 ,0.0004 ,0],
+  [4300,4400 ,0.0004 ,0      ,0], /* Thick belt */
+  [4400,4600 ,0.0003 ,0.0004 ,0],
+  [4600,4700 ,0.0004 ,0      ,0], /* Thick belt */
 ];
 var baseRadius = 300;
 var baseShieldRadius = 400
-var junkPrice = 10;
+var junkPrice = 20;
 var gridSize = 500;
 var idCounter = 0;
 var frameDelay = 40;
@@ -115,7 +115,6 @@ io.on('connection', function(socket) {
   var player;
 
   socket.on('start', function(name) {
-    console.log('start');
     if (typeof(name) == 'string') {
       if (name == '') {
         socket.emit('validation response',{answer:false,message:'You must have a name.'});
@@ -282,6 +281,22 @@ function genAsteroidsAndResources() {
   }
 }
 
+function genAsteroid(minRad,maxRad,i) {
+  var startAng = 0;
+  var endAng = 360;
+  var r = Math.random()*(maxRad-minRad)+minRad;
+  var angle = Math.random()*(endAng-startAng) + startAng;
+  asteroids.push(new Asteroid(genID(),r*Math.cos(angle),r*Math.sin(angle),Math.random()*360,i,Math.floor(Math.random()*3)));
+}
+
+function genResource(minRad,maxRad,i) {
+  var startAng = 0;
+  var endAng = 360;
+  var r = Math.random()*(maxRad-minRad)+minRad;
+  var angle = Math.random()*(endAng-startAng) + startAng;
+  resources.push(new Resource(genID(),r*Math.cos(angle),r*Math.sin(angle),'standard',i));
+}
+
 function movePlayers() {
   for (var i = 0; i < players.length; i++) {
     var p = players[i];
@@ -388,9 +403,9 @@ function moveMissiles() {
 
 function sortObjectsIntoGrids(objects) {
   var grids = [];
-  for (var w = mapCurrXLimits[0]; w <= mapCurrXLimits[1]; w += gridSize) {
+  for (var w = mapCurrXLimits[0]; w <= mapCurrXLimits[1]+1; w += gridSize) {
     var gridCol = [];
-    for (var h = mapCurrYLimits[0]; h <= mapCurrYLimits[1]; h += gridSize) {
+    for (var h = mapCurrYLimits[0]; h <= mapCurrYLimits[1]+1; h += gridSize) {
       gridCol.push([]);
     }
     grids.push(gridCol);
@@ -577,14 +592,28 @@ function sendUpdates() {
   }
   // Check for destroyed asteroids
   for(var i = deleteAsteroidList.length-1; i >= 0; i--) {
+    var a = asteroids[deleteAsteroidList[i]];
+    var belt = findBelt(a)
     asteroids.splice(deleteAsteroidList[i],1);
+    setTimeout(function(){genAsteroid(asteroidBelts[belt][0],asteroidBelts[belt][0],asteroids.length)},1000)
   }
   for(var i = deleteResourceList.length-1; i >= 0; i--) {
+    var r = resources[deleteResourceList[i]];
+    var belt = findBelt(r)
     resources.splice(deleteResourceList[i],1);
+    setTimeout(function(){genResource(asteroidBelts[belt][0],asteroidBelts[belt][0],resources.length)},1000)
   }
   for(var i = deleteMissilesList.length-1; i >= 0; i--) {
     missiles.splice(deleteMissilesList[i],1);
   }
+}
+
+function findBelt(object) {
+  var dist = Math.sqrt(object.x*object.x + object.y*object.y);
+  for (var j = 0; j < asteroidBelts.length; j++) {
+    if (dist >= asteroidBelts[j][0] && dist <= asteroidBelts[j][1]) return j;
+  }
+  return 0;
 }
 
 function checkPlayers() {
@@ -637,17 +666,6 @@ function clearJunk() {
   }
 }
 
-function regenObjects() {
-  var regions = [];
-
-
-  //var belts = []
-  //for (var i = 0; i < asteroids; i++) {
-  //}
-  //run every 10 seconds
-  // calculate density of asteroids in each ring, compare to set levels
-}
-
 function fireMissiles() {
   for (var i = 0; i < players.length; i++) {
     var p = players[i];
@@ -664,10 +682,19 @@ function fireMissiles() {
   }
 }
 
+function spinAsteroids() {
+  for (var i = 0; i < asteroids.length; i++) {
+    var a = asteroids[i];
+    var delta = (Date.now()-a.lastMovedTime)/1000.0;
+    a.angle = (a.angle - 10*delta) % 360;
+    if (a.angle < 0) a.angle += 360;
+    a.lastMovedTime = Date.now();
+  }
+}
+
 function gameLoop() {
-  //console.log(asteroids.length)
   fireMissiles();
-  regenObjects();
+  spinAsteroids();
   clearJunk();
   checkPlayers();
   acceleratePlayers();

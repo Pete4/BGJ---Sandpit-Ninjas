@@ -9,6 +9,7 @@ function Asteroid(id,x,y,angle,ind,imageNum) {
   this.height = 64;
   this.timeOfDeath = null;
   this.timeSinceDeath = null;
+  this.lastMoveTime = Date.now();
   this.type = 'asteroid';
   this.imageNum = imageNum;
   
@@ -23,6 +24,7 @@ function Asteroid(id,x,y,angle,ind,imageNum) {
     height: this.height,
     timeOfDeath: this.timeOfDeath,
     timeSinceDeath: this.timeSinceDeath,
+    lastMoveTime: this.lastMoveTime,
     type: this.type,
     imageNum: this.imageNum
   };
