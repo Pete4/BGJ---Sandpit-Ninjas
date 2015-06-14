@@ -11,7 +11,7 @@ function Player(id,name) {
   this.junk = 0;
   this.health = 100;
   this.shield = 0;
-  this.cash = 5000;
+  this.cash = 50;
   this.width = 64;
   this.height = 64;
   this.accelerationX = 20; //fixed

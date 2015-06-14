@@ -595,13 +595,13 @@ function sendUpdates() {
     var a = asteroids[deleteAsteroidList[i]];
     var belt = findBelt(a)
     asteroids.splice(deleteAsteroidList[i],1);
-    setTimeout(function(){genAsteroid(asteroidBelts[belt][0],asteroidBelts[belt][0],asteroids.length)},1000)
+    setTimeout(function(){genAsteroid(asteroidBelts[belt][0],asteroidBelts[belt][0],asteroids.length)},30000)
   }
   for(var i = deleteResourceList.length-1; i >= 0; i--) {
     var r = resources[deleteResourceList[i]];
     var belt = findBelt(r)
     resources.splice(deleteResourceList[i],1);
-    setTimeout(function(){genResource(asteroidBelts[belt][0],asteroidBelts[belt][0],resources.length)},1000)
+    setTimeout(function(){genResource(asteroidBelts[belt][0],asteroidBelts[belt][0],resources.length)},30000)
   }
   for(var i = deleteMissilesList.length-1; i >= 0; i--) {
     missiles.splice(deleteMissilesList[i],1);
@@ -686,7 +686,7 @@ function spinAsteroids() {
   for (var i = 0; i < asteroids.length; i++) {
     var a = asteroids[i];
     var delta = (Date.now()-a.lastMovedTime)/1000.0;
-    a.angle = (a.angle - 10*delta) % 360;
+    a.angle = (a.angle + 50*delta) % 360;
     if (a.angle < 0) a.angle += 360;
     a.lastMovedTime = Date.now();
   }
