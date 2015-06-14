@@ -9,6 +9,7 @@ function Asteroid(id,x,y,angle,ind) {
   this.height = 64;
   this.timeOfDeath = null;
   this.timeSinceDeath = null;
+  this.type = 'asteroid';
   
   return {
     id: this.id,
@@ -20,7 +21,8 @@ function Asteroid(id,x,y,angle,ind) {
     width: this.width,
     height: this.height,
     timeOfDeath: this.timeOfDeath,
-    timeSinceDeath: this.timeSinceDeath
+    timeSinceDeath: this.timeSinceDeath,
+    type: this.type
   };
 }
 exports.Asteroid = Asteroid;
