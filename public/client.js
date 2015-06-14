@@ -266,7 +266,7 @@ function movePlayer(p) {
 
 function acceleratePlayer() {
 	var p = player;
-	var delta = (Date.now()-p.lastMovedTime)/1000.0;
+	var delta = (Date.now()-lastMovedTime)/1000.0;
 	if (Date.now() - p.lastCollisionTime > 500) {
 		if (p.keyState[KEY_CODES.LEFT]) {
 			p.fuel -= delta;
@@ -296,7 +296,7 @@ function acceleratePlayer() {
 		}
 		p.x += p.speedX*delta*Math.cos(TO_RADIANS*p.angle);
 		p.y += p.speedY*delta*Math.sin(TO_RADIANS*p.angle);
-		p.lastMovedTime = Date.now();
+		lastMovedTime = Date.now();
 	}
 }
 

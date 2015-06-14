@@ -58,7 +58,7 @@ var baseRadius = 300;
 var junkPrice = 10;
 var gridSize = 500;
 var idCounter = 0;
-var frameDelay = 35;
+var frameDelay = 40;
 var KEY_CODES = {
   LEFT: 37,
   UP: 38,
