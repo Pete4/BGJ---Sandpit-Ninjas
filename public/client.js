@@ -56,7 +56,9 @@ var audioEngineStart = new Audio('sound/engine_start.mp3');
 var audioEngineStop = new Audio('sound/engine_stop.mp3');
 var audioEngineOn = new Audio('sound/engine_on.mp3');
 var audioCrash = new Audio('sound/crash.mp3');
+var audioCollectJunk = new Audio('sound/collect_junk.mp3');
 var audioGameOver = new Audio('sound/gameover.mp3');
+var audioMusic_SuperTechno = new Audio('sound/music_spacetechno.mp3');
 //26540
 
 //Utilities
