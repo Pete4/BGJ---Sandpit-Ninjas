@@ -475,10 +475,14 @@ function checkForCollosions(p,objects) {
         if (p.starterShip) var junkCapacity = junkCapacities[STARTER_SHIP];
         else var junkCapacity = junkCapacities[p.holdLevel+1];
         if (junkCapacity > p.junk) {
+		  if (!soundMuted) audioCollectJunk.play();
           o.health -= 20;
           p.junk += 1;
-        }
+        } else {
+		  if (!soundMuted) audioError.play();
+		}
       } else if (o.type == 'asteroid') {
+		if (!soundMuted) audioCrash.play();
         o.health -= 20;
         p.lastCollisionTime = Date.now();
         if (p.shield >= 20) p.shield -= 20;
