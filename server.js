@@ -185,6 +185,44 @@ function movePlayers() {
   }
 }
 
+function acceleratePlayers() {
+  for (var i = 0; i < players.length; i++) {
+    var p = players[i];
+    var delta = (Date.now()-p.lastMovedTime)/1000.0;
+    if (Date.now() - p.lastCollisionTime > 500) {
+      if (p.keyState[KEY_CODES.LEFT]) {
+        p.fuel -= delta;
+        p.state = 1;
+        p.angle = (p.angle - p.rotationSpeed*delta) % 360;
+        if (p.angle < 0) p.angle += 360;
+      } else if (p.keyState[KEY_CODES.RIGHT]) {
+        p.fuel -= delta;
+        p.state = 2;
+        p.angle = (p.angle + p.rotationSpeed*delta) % 360;
+        if (p.angle < 0) p.angle += 360;
+      } else if (p.keyState[KEY_CODES.UP]) {
+        p.speedX += p.accelerationX*delta*Math.cos(TO_RADIANS*p.angle);
+        p.speedY += p.accelerationY*delta*Math.sin(TO_RADIANS*p.angle);
+        p.fuel -= delta;
+        p.state = 3;
+      } else {
+        p.state = 0;
+      }
+      if (isNaN(p.speedX)) {
+        console.log('p.speedX')
+        exit()
+      }
+      if (isNaN(p.speedY)) {
+        console.log('p.speedY')
+        exit()
+      }
+      p.x += p.speedX*delta;//*Math.cos(TO_RADIANS*p.angle);
+      p.y += p.speedY*delta;//*Math.sin(TO_RADIANS*p.angle);
+      p.lastMovedTime = Date.now();
+    }
+  }
+}
+
 function sortObjectsIntoGrids(objects) {
   var grids = [];
   for (var w = mapCurrXLimits[0]; w <= mapCurrXLimits[1]; w += gridSize) {
@@ -196,7 +234,10 @@ function sortObjectsIntoGrids(objects) {
   }
   var numNegXGrids = -Math.min(mapCurrXLimits[0]/gridSize,0);
   var numNegYGrids = -Math.min(mapCurrYLimits[0]/gridSize,0);
+  //console.log(objects);
   for (var i = 0; i < objects.length; i++) {
+    //console.log(Math.floor(objects[i].x/gridSize)+numNegXGrids)
+    //console.log(objects[i].x)
     grids[Math.floor(objects[i].x/gridSize)+numNegXGrids][Math.floor(objects[i].y/gridSize)+numNegYGrids].push(objects[i]);
   }
   return grids;
@@ -346,7 +387,6 @@ function getScores() {
   }
 }
 
-
 function clearJunk() {
   for (var i = 1; i < players.length; i++) {
     var p = players[i];
@@ -360,7 +400,7 @@ function clearJunk() {
 function gameLoop() {
   clearJunk();
   checkPlayers();
-  movePlayers();
+  acceleratePlayers();
   getScores();
   sendUpdates();
 }

@@ -264,6 +264,42 @@ function movePlayer(p) {
 	}
 }
 
+function acceleratePlayer() {
+	var p = player;
+	var delta = (Date.now()-p.lastMovedTime)/1000.0;
+	if (Date.now() - p.lastCollisionTime > 500) {
+		if (p.keyState[KEY_CODES.LEFT]) {
+			p.fuel -= delta;
+			state = 1;
+			p.angle = (p.angle - p.rotationSpeed*delta) % 360;
+			if (p.angle < 0) p.angle += 360;
+		} else if (p.keyState[KEY_CODES.RIGHT]) {
+			p.fuel -= delta;
+			state = 2;
+			p.angle = (p.angle + p.rotationSpeed*delta) % 360;
+			if (p.angle < 0) p.angle += 360;
+		} else if (p.keyState[KEY_CODES.UP]) {
+			p.speedX += p.accelerationX*delta*Math.cos(TO_RADIANS*p.angle);
+			p.speedY += p.accelerationY*delta*Math.sin(TO_RADIANS*p.angle);
+			p.fuel -= delta;
+			state = 3;
+		} else {
+			state = 0;
+		}
+		if (isNaN(p.speedX)) {
+			console.log('p.speedX')
+			exit()
+		}
+		if (isNaN(p.speedY)) {
+			console.log('p.speedY')
+			exit()
+		}
+		p.x += p.speedX*delta*Math.cos(TO_RADIANS*p.angle);
+		p.y += p.speedY*delta*Math.sin(TO_RADIANS*p.angle);
+		p.lastMovedTime = Date.now();
+	}
+}
+
 function checkForCollosions(p,objects) {
 	for (var i = 0; i < objects.length; i++) {
 		var o = objects[i];
@@ -376,7 +412,8 @@ function updateCanvas() {
 	//Clear canvas
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 	
-	movePlayer();
+	//movePlayer();
+	acceleratePlayer();
 	checkForCollosions(player,asteroids);
     checkForCollosions(player,resources);
 	drawObjects();

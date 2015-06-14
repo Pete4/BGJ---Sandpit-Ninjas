@@ -12,6 +12,11 @@ function Player(id,name) {
   this.cash = 50;
   this.width = 64;
   this.height = 64;
+  this.accelerationX = 10; //fixed
+  this.accelerationY = 10; //fixed
+  this.speedX = 0;
+  this.speedY = 0;
+  this.speedMax = 100; // px/sec
   this.forwardSpeed = 100; // px/sec
   this.rotationSpeed = 160; // deg/sec
   this.lastMovedTime = Date.now();
@@ -38,6 +43,11 @@ function Player(id,name) {
     cash: this.cash,
     width: this.width,
     height: this.height,
+    accelerationX: this.accelerationX,
+    accelerationY: this.accelerationY,
+    speedX: this.speedX,
+    speedY: this.speedY,
+    speedMax: this.speedMax,
     forwardSpeed: this.forwardSpeed,
     rotationSpeed: this.rotationSpeed,
     lastMovedTime: this.lastMovedTime,
