@@ -5,6 +5,7 @@ var player = playerPresets;
 var players = []; //Other players
 var asteroids = [];
 var resources = [];
+var scores = [];
 var canvas = $("#game-canvas")[0];
 var canvasSize = {height:0, width:0}
 var ctx = canvas.getContext("2d");
@@ -167,6 +168,7 @@ function registerSocketHooks() {
 		players = obj.players;
 		asteroids = obj.asteroids;
 		resources = obj.resources;
+		scores = obj.scores;
 	})
 	socket.on('ping', function(p){
       socket.emit('ping response',p);
@@ -354,29 +356,11 @@ function drawUI() {
 	ctx.font="bold 25px Arial";
 	ctx.fillText('Leaderboard', canvas.width-235,50);
 	ctx.font="18px Arial";
-	ctx.fillText('1. Simo389', canvas.width-270,85);
-	ctx.fillText('437574', canvas.width-90,85);
-	ctx.fillText('2. ediqin', canvas.width-270,115);
-	ctx.fillText('33655', canvas.width-90,115);
-	ctx.fillText('3. Gazz', canvas.width-270,145);
-	ctx.fillText('26338', canvas.width-90,145);
-	ctx.fillText('4. Simo389', canvas.width-270,175);
-	ctx.fillText('10794', canvas.width-90,175);
-	ctx.fillText('5. ediqin', canvas.width-270,205);
-	ctx.fillText('5042', canvas.width-90,205);
-	ctx.fillText('6. Gazz', canvas.width-270,235);
-	ctx.fillText('890', canvas.width-90,235);
-	ctx.fillText('7. Simo389', canvas.width-270,265);
-	ctx.fillText('735', canvas.width-90,265);
-	ctx.fillText('8. MMMMMMMMMM', canvas.width-270,295);
-	ctx.fillText('537', canvas.width-90,295);
-	ctx.fillText('9. Gazz', canvas.width-270,325);
-	ctx.fillText('100', canvas.width-90,325);
-	ctx.fillText('10. Simo389', canvas.width-270,355);
-	ctx.fillText('40', canvas.width-90,355);
-	/*for () {
-		
-	}*/
+	var initialScoreboardHeight = 85;
+	for (var i = 0; i < scores.size; i++) {
+		ctx.fillText((i+1).toString()+'. '+scores[i][0], canvas.width-270,85 + (i*30));
+		ctx.fillText(scores[i][1], canvas.width-90,85 + (i*30));
+	}
 	
 	//Display shield
 	var shieldHeightOffset = 170;
