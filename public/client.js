@@ -203,18 +203,23 @@ function movePlayer(p) {
 	}
 }
 
-function checkCollisions() {
-	var p = player;
-	for (var i = 0; i < asteroids.length; i++) {
-      var a = asteroids[i];
-      var xDiff = p.x - a.x;
-      var yDiff = p.y - a.y;
-      var collDist = (a.width/2)*0.85 + (p.width/2)*0.85;
-      if (a.health > 0 && xDiff*xDiff + yDiff*yDiff < collDist*collDist) {
-        // Collision has occurred!
-		audioCrash.play();
-        a.health -= 100;
-        p.lastCollisionTime = Date.now()
+function checkForCollosions(p,objects) {
+  for (var i = 0; i < objects.length; i++) {
+    var o = objects[i];
+    var xDiff = p.x - o.x;
+    var yDiff = p.y - o.y;
+    var collDist = (o.width/2)*0.85 + (p.width/2)*0.85;
+    if (o.health > 0 && xDiff*xDiff + yDiff*yDiff < collDist*collDist) {
+      // Collision has occurred!
+      
+      if (o.type == 'standard') {
+        if (p.hullCapacity > p.junk) {
+          o.health -= 100;
+          p.junk += 1;
+        }
+      } else if (o.type == 'asteroid') {
+        o.health -= 100;
+        p.lastCollisionTime = Date.now();
         if (p.shield >= 20) p.shield -= 20;
         else if (p.shield == 0) p.health -= 20;
         else {
@@ -223,6 +228,7 @@ function checkCollisions() {
         }
       }
     }
+  }
 }
 
 function playShipSoundEffect(p) {
@@ -296,7 +302,8 @@ function updateCanvas() {
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 	
 	movePlayer();
-	checkCollisions();
+	checkForCollosions(player,asteroids);
+    checkForCollosions(player,resources);
 	drawObjects();
 	drawPlayers();
 	drawUI();
