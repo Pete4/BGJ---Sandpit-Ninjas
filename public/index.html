@@ -32,9 +32,25 @@
 		<div id="shop-popup" class="light-grey-background hidden">
 			<img src="images/BuyIcon.png" alt="Buy Icon"></img>
 			
-			<div class="shop-section">
-				<img class="grow" src="images/ShieldIcon.png" alt="Shield Icon"></img>
-			</div>
+			<table>
+				<tr>
+					<td><img class="grow shop-buy" src="images/FuelIcon.png" onclick="refillFuel()"></img></td>
+					<td><img class="small-margin-right" src="images/EuroPink.png"></img><img class="small-margin-right" src="images/2Blue.png"></img><img src="images/0Pink.png"></img></td>
+				</tr>
+				<tr>
+					<td><img class="grow shop-buy" src="images/HealthIcon.png" onclick="refillHealth()"></img></td>
+					<td><img class="small-margin-right" src="images/EuroBlue.png"></img><img class="small-margin-right" src="images/2Pink.png"></img><img src="images/0Blue.png"></img></td>
+				</tr>
+				<tr><td colspan=2><hr></td></tr>
+				<tr>
+					<td><img class="grow shop-buy" src="images/ShieldIcon.png" onclick="upgradeShield()"></img></td>
+					<td><img class="small-margin-right" src="images/EuroPink.png"></img><img class="small-margin-right" src="images/5Blue.png"></img><img src="images/0Pink.png"></img></td>
+				</tr>
+				<tr>
+					<td><img class="grow shop-buy" src="images/HoldIcon.png" onclick="upgradeHold()"></img></td>
+					<td><img class="small-margin-right" src="images/EuroBlue.png"></img><img class="small-margin-right" src="images/1Pink.png"></img><img class="small-margin-right" src="images/0Blue.png"></img><img src="images/0Pink.png"></img></td>
+				</tr>
+			</table>
 		</div>
 		
 		<script src="client.js"></script>

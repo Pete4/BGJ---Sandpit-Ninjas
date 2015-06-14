@@ -12,11 +12,15 @@ textarea:focus, input:focus, button:focus {outline:0;}
 		#start-popup-name{display:block;margin:auto;padding:8px 12px;width:69px;font-size:14px;border-radius:4px;border:1px solid #ccc;margin-bottom:10px;}
 	#shop-popup {padding:20px;text-align:center !important;transform:scale(0.8);}
 	.popup_visible #shop-popup {transform:scale(1);}
-		.shop-section{float:left;width:100%;}
-			.shop-section img:hover{cursor:pointer;}
+		#shop-popup{min-width:200px;}
+			#shop-popup table{margin-top:20px;}
+				#shop-popup td{padding:2px 10px;}
+					.shop-buy:hover{cursor:pointer;}
 
  .light-grey-background{background-color:#f5f5f5;}
  .white-background{background-color:#fff;}
+ 
+ .small-margin-right{margin-right:2px;}
  
  .button{display:inline-block;padding:6px 12px;margin:auto;font-size:14px;font-weight:400;line-height:1.42857143;text-align:center;white-space:nowrap;vertical-align:middle;-ms-touch-action:manipulation;touch-action:manipulation;cursor:pointer;-webkit-user-select: none;-moz-user-select:none;-ms-user-select:none;user-select:none;background-image:none;border: 1px solid transparent;border-radius:4px;border-color:#ccc;}
 	.button:hover{background-color: #e6e6e6;border-color: #adadad;}

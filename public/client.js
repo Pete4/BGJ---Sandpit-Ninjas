@@ -141,6 +141,22 @@ function loadShop() {
 	});
 }
 
+function refillFuel() {
+	socket.emit('refillfuel', true);
+}
+
+function refillHealth() {
+	socket.emit('refillhealth', true);
+}
+
+function upgradeShield() {
+	socket.emit('upgradeshield', true);
+}
+
+function upgradeHold() {
+	socket.emit('upgradehold', true);
+}
+
 function updateCanvasSize() {
 	canvas.height = $(window).height();
 	canvas.width = $(window).width();
@@ -189,7 +205,7 @@ function movePlayer(p) {
 	var delta = (Date.now()-lastMovedTime)/1000.0;
 	if (Date.now() - lastCollisionTime > 500) {
 	    if (p.keyState[KEY_CODES.LEFT]) {
-			//loadShop();
+			loadShop();
 			playShipSoundEffect(p);
 			state = 1;
 			p.angle = (p.angle - p.rotationSpeed*delta) % 360;
@@ -357,28 +373,31 @@ function drawUI() {
 	ctx.fillText('Leaderboard', canvas.width-235,50);
 	ctx.font="18px Arial";
 	var initialScoreboardHeight = 85;
-	for (var i = 0; i < scores.size; i++) {
+	for (var i = 0; i < scores.length; i++) {
 		ctx.fillText((i+1).toString()+'. '+scores[i][0], canvas.width-270,85 + (i*30));
 		ctx.fillText(scores[i][1], canvas.width-90,85 + (i*30));
 	}
 	
-	//Display shield
-	var shieldHeightOffset = 170;
-	var shieldBars = Math.floor(player.shield/20);
-	var shieldExcess = player.health % 20;
-	ctx.drawImage(shieldImage, 20, canvas.height-shieldHeightOffset);
-	for (var i = 1; i <= shieldBars; i++) {
+	//Display fuel
+	var fuelHeightOffset =170;
+	var fuelBars = Math.floor(player.fuel/20);
+	var fuelExcess = player.fuel % 20;
+	ctx.drawImage(fuelImage, 20, canvas.height-fuelHeightOffset);
+	if (fuelBars < 1) {
+		audioError.play();
+	}
+	for (var i = 1; i <= fuelBars; i++) {
 		if (i % 2 == 0) {
-			ctx.drawImage(blueBarImage, 110 + (i*20), canvas.height-shieldHeightOffset);
+			ctx.drawImage(blueBarImage, 110 + (i*20), canvas.height-fuelHeightOffset);
 		} else {
-			ctx.drawImage(pinkBarImage, 110 + (i*20), canvas.height-shieldHeightOffset);
+			ctx.drawImage(pinkBarImage, 110 + (i*20), canvas.height-fuelHeightOffset);
 		}
 	}
-	if (shieldExcess != 0) {
-		if (shieldBars % 2 == 1) {
-			ctx.drawImage(blueBarImage, 0, 0, 16*(shieldExcess/20), 32, 110 + ((shieldBars+1)*20), canvas.height-shieldHeightOffset, 16*(shieldExcess/20), 32);
+	if (fuelExcess != 0) {
+		if (fuelBars % 2 == 1) {
+			ctx.drawImage(blueBarImage, 0, 0, 16*(fuelExcess/20), 32, 110 + ((fuelBars+1)*20), canvas.height-fuelHeightOffset, 16*(fuelExcess/20), 32);
 		} else {
-			ctx.drawImage(pinkBarImage, 0, 0, 16*(shieldExcess/20), 32, 110 + ((shieldBars+1)*20), canvas.height-shieldHeightOffset, 16*(shieldExcess/20), 32);
+			ctx.drawImage(pinkBarImage, 0, 0, 16*(fuelExcess/20), 32, 110 + ((fuelBars+1)*20), canvas.height-fuelHeightOffset, 16*(fuelExcess/20), 32);
 		}
 	}
 	
@@ -402,26 +421,23 @@ function drawUI() {
 		}
 	}
 	
-	//Display fuel
-	var fuelHeightOffset = 90;
-	var fuelBars = Math.floor(player.fuel/20);
-	var fuelExcess = player.fuel % 20;
-	ctx.drawImage(fuelImage, 20, canvas.height-fuelHeightOffset);
-	if (fuelBars < 1) {
-		audioError.play();
-	}
-	for (var i = 1; i <= fuelBars; i++) {
+	//Display shield
+	var shieldHeightOffset = 90;
+	var shieldBars = Math.floor(player.shield/20);
+	var shieldExcess = player.health % 20;
+	ctx.drawImage(shieldImage, 20, canvas.height-shieldHeightOffset);
+	for (var i = 1; i <= shieldBars; i++) {
 		if (i % 2 == 0) {
-			ctx.drawImage(blueBarImage, 110 + (i*20), canvas.height-fuelHeightOffset);
+			ctx.drawImage(blueBarImage, 110 + (i*20), canvas.height-shieldHeightOffset);
 		} else {
-			ctx.drawImage(pinkBarImage, 110 + (i*20), canvas.height-fuelHeightOffset);
+			ctx.drawImage(pinkBarImage, 110 + (i*20), canvas.height-shieldHeightOffset);
 		}
 	}
-	if (fuelExcess != 0) {
-		if (fuelBars % 2 == 1) {
-			ctx.drawImage(blueBarImage, 0, 0, 16*(fuelExcess/20), 32, 110 + ((fuelBars+1)*20), canvas.height-fuelHeightOffset, 16*(fuelExcess/20), 32);
+	if (shieldExcess != 0) {
+		if (shieldBars % 2 == 1) {
+			ctx.drawImage(blueBarImage, 0, 0, 16*(shieldExcess/20), 32, 110 + ((shieldBars+1)*20), canvas.height-shieldHeightOffset, 16*(shieldExcess/20), 32);
 		} else {
-			ctx.drawImage(pinkBarImage, 0, 0, 16*(fuelExcess/20), 32, 110 + ((fuelBars+1)*20), canvas.height-fuelHeightOffset, 16*(fuelExcess/20), 32);
+			ctx.drawImage(pinkBarImage, 0, 0, 16*(shieldExcess/20), 32, 110 + ((shieldBars+1)*20), canvas.height-shieldHeightOffset, 16*(shieldExcess/20), 32);
 		}
 	}
 	
