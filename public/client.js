@@ -23,6 +23,9 @@ var shipAudioStartTime = Date.now();
 var shopOpen = true;
 var soundMuted = false;
 var musicMuted = false;
+var fuelEmpty = true;
+var curDisplayedMessage = "";
+var curDisplayedDuration = 50;
 
 //Load images
 var spaceshipStationary = new Image(); spaceshipStationary.src = 'images/FirstSpace_NoFlame.png';
@@ -123,7 +126,7 @@ $(function() {
 
 function handleMusic() {
 	if (!audioMusic_Wait.paused) {
-		if (Date.now() > musicWaitStartTime + 26400) {
+		if (Date.now() > musicWaitStartTime + 26300) {
 			stopMusic();
 			musicWaitStartTime = Date.now();
 			audioMusic_Wait.play();
@@ -131,7 +134,7 @@ function handleMusic() {
 	}
 	
 	if (!audioMusic_Game.paused) {
-		if (Date.now() > musicGameStartTime + 52400) {
+		if (Date.now() > musicGameStartTime + 52300) {
 			stopMusic();
 			musicGameStartTime = Date.now();
 			audioMusic_Game.play();
@@ -195,7 +198,7 @@ function start() {
 function loadOverlay(died) {
 	$('#game-popup-response').html("");
 	if (died){
-		$('#shop-popup').popup('hide');
+		shopOpen = true;
 		$('#game-popup-response').html("You died!");
 		if (!soundMuted) audioGameOver.play();
 		playMusic('wait');
@@ -238,103 +241,6 @@ function updateDisplayedShopItems() {
 	}
 }
 
-function refillFuel() {
-	socket.emit('refillfuel', true);
-	socket.on('refillfuel', function(response){
-		if (response == true) {
-			if (!soundMuted) audioFuel.play();
-		} else {
-			if (!soundMuted) audioError.play();
-		}
-		updateDisplayedShopItems();
-    });
-}
-
-function refillHealth() {
-	socket.emit('refillhealth', true);
-	socket.on('refillhealth', function(response){
-		if (response == true) {
-			if (!soundMuted) audioHeal.play();
-		} else {
-			if (!soundMuted) audioError.play();
-		}
-		updateDisplayedShopItems();
-    });
-}
-
-function upgradeShield() {
-	socket.emit('upgradeshield', true);
-	socket.on('upgradeshield', function(response){
-		if (response == true) {
-			if (!soundMuted) audioUpgrade.play();
-		} else {
-			if (!soundMuted) audioError.play();
-		}
-		updateDisplayedShopItems();
-    });
-}
-
-function upgradeShip() {
-	socket.emit('upgradeship', true);
-	socket.on('upgradeship', function(response){
-		if (response == true) {
-			player.starterShip = false;
-			console.log("money sound played");
-			if (!soundMuted) audioUpgrade.play();
-		} else {
-			console.log("error sound played");
-			if (!soundMuted) audioError.play();
-		}
-		updateDisplayedShopItems();
-    });
-}
-
-function upgradeHold() {
-	socket.emit('upgradehold', true);
-	socket.on('upgradehold', function(response){
-		if (response == true) {
-			if (!soundMuted) audioUpgrade.play();
-		} else {
-			if (!soundMuted) audioError.play();
-		}
-		updateDisplayedShopItems();
-    });
-}
-
-function upgradeWeapon() {
-	socket.emit('upgradeweapon', true);
-	socket.on('upgradeweapon', function(response){
-		if (response == true) {
-			if (!soundMuted) audioUpgrade.play();
-		} else {
-			if (!soundMuted) audioError.play();
-		}
-		updateDisplayedShopItems();
-    });
-}
-
-function upgradeEngine() {
-	socket.emit('upgradeengine', true);
-	socket.on('upgradeengine', function(response){
-		if (response == true) {
-			if (!soundMuted) audioUpgrade.play();
-		} else {
-			if (!soundMuted) audioError.play();
-		}
-		updateDisplayedShopItems();
-    });
-}
-
-function updateCanvasSize() {
-	canvas.height = $(window).height();
-	canvas.height = $(window).height();
-	canvas.width = $(window).width();
-	canvasSize.height = canvas.height;
-	canvasSize.width = canvas.width;
-	
-	socket.emit('canvassize',canvasSize);
-}
-
 function registerSocketHooks() {
 	//socket.emit('name', object);
 	//socket.on('name', function to handle object);
@@ -359,6 +265,101 @@ function registerSocketHooks() {
 	socket.on('ping', function(p){
       socket.emit('ping response',p);
     });
+	socket.on('refillfuel', function(response){
+		if (response == true) {
+			if (!soundMuted) audioFuel.play();
+		} else {
+			if (!soundMuted) audioError.play();
+		}
+		updateDisplayedShopItems();
+    });
+	socket.on('refillhealth', function(response){
+		if (response == true) {
+			if (!soundMuted) audioHeal.play();
+		} else {
+			if (!soundMuted) audioError.play();
+		}
+		updateDisplayedShopItems();
+    });
+	socket.on('upgradeshield', function(response){
+		if (response == true) {
+			if (!soundMuted) audioUpgrade.play();
+		} else {
+			if (!soundMuted) audioError.play();
+		}
+		updateDisplayedShopItems();
+    });
+	socket.on('upgradeship', function(response){
+		if (response == true) {
+			player.starterShip = false;
+			if (!soundMuted) audioUpgrade.play();
+		} else {
+			if (!soundMuted) audioError.play();
+		}
+		updateDisplayedShopItems();
+    });
+	socket.on('upgradehold', function(response){
+		if (response == true) {
+			if (!soundMuted) audioUpgrade.play();
+		} else {
+			if (!soundMuted) audioError.play();
+		}
+		updateDisplayedShopItems();
+    });
+	socket.on('upgradeweapon', function(response){
+		if (response == true) {
+			if (!soundMuted) audioUpgrade.play();
+		} else {
+			if (!soundMuted) audioError.play();
+		}
+		updateDisplayedShopItems();
+    });
+	socket.on('upgradeengine', function(response){
+		if (response == true) {
+			if (!soundMuted) audioUpgrade.play();
+		} else {
+			if (!soundMuted) audioError.play();
+		}
+		updateDisplayedShopItems();
+    });
+}
+
+function refillFuel() {
+	socket.emit('refillfuel', true);
+}
+
+function refillHealth() {
+	socket.emit('refillhealth', true);
+}
+
+function upgradeShield() {
+	socket.emit('upgradeshield', true);
+}
+
+function upgradeShip() {
+	socket.emit('upgradeship', true);
+}
+
+function upgradeHold() {
+	socket.emit('upgradehold', true);
+}
+
+function upgradeWeapon() {
+	socket.emit('upgradeweapon', true);
+}
+
+function upgradeEngine() {
+	socket.emit('upgradeengine', true);
+}
+
+function updateCanvasSize() {
+	canvas.height = $(window).height();
+	canvas.height = $(window).height();
+	canvas.width = $(window).width();
+	canvasSize.height = canvas.height;
+	canvasSize.width = canvas.width;
+	
+	socket.emit('canvassize',canvasSize);
 }
 
 function getLocalCoords(x, y) {
@@ -376,27 +377,45 @@ function acceleratePlayer() {
 	if (Date.now() - p.lastCollisionTime > 500) {
 		if (p.keyState[KEY_CODES.LEFT]) {
 			if (p.fuel >= delta) {
+				fuelEmpty = false;
 				p.fuel -= delta;
 				playShipSoundEffect(p);
 				state = 1;
 				p.angle = (p.angle - p.rotationSpeed*delta) % 360;
 				if (p.angle < 0) p.angle += 360;
+			} else {
+				if (!fuelEmpty) {
+					displayMessage('Out of fuel!');
+					fuelEmpty = true;
+				}
 			}
 		} else if (p.keyState[KEY_CODES.RIGHT]) {
 			if (p.fuel >= delta) {
+				fuelEmpty = false;
 				p.fuel -= delta;
 				playShipSoundEffect(p);
 				state = 2;
 				p.angle = (p.angle + p.rotationSpeed*delta) % 360;
 				if (p.angle < 0) p.angle += 360;
+			} else {
+				if (!fuelEmpty) {
+					displayMessage('Out of fuel!');
+					fuelEmpty = true;
+				}
 			}
 		} else if (p.keyState[KEY_CODES.UP]) {
 			if (p.fuel >= delta) {
+				fuelEmpty = false;
 				p.speedX += p.accelerationX*delta*Math.cos(TO_RADIANS*p.angle);
 				p.speedY += p.accelerationY*delta*Math.sin(TO_RADIANS*p.angle);
 				p.fuel -= delta;
 				playShipSoundEffect(p);
 				state = 3;
+			} else {
+				if (!fuelEmpty) {
+					displayMessage('Out of fuel!');
+					fuelEmpty = true;
+				}
 			}
 		} else {
 			if (state != 0) {
@@ -482,6 +501,10 @@ function stopShipSoundEffects() {
 function drawObjects() {
 	//Draw spawn
 	var coords = getLocalCoords(0, 0);
+	ctx.beginPath();
+	ctx.arc(coords.x, coords.y, 400, 0, 2 * Math.PI, false);
+	ctx.fillStyle = "rgba(41, 128, 185, 0.75)";
+	ctx.fill();
 	ctx.drawImage(spawnImage, coords.x-300, coords.y-300, 600, 600);
 	
 	//Draw resources and asteroids
@@ -567,17 +590,42 @@ function updateCanvas() {
 	drawObjects();
 	drawPlayers();
 	drawUI();
+	drawMessage();
 	
 	//Check if player is within spawn
-	if (((player.x*player.x) + (player.y*player.y)) < 300*300) {
+	var distSquaredFromCenter = ((player.x*player.x) + (player.y*player.y));
+	if (distSquaredFromCenter < 400*400) {
+		$("#shop-open-active").removeClass("hidden");
+		$("#shop-open-inactive").addClass("hidden");
+	} else {
+		$("#shop-open-active").addClass("hidden");
+		$("#shop-open-inactive").removeClass("hidden");
+	}
+	if (distSquaredFromCenter < 300*300) {
 		if (!shopOpen) {
 			loadShop();
 		}
-	} else {
+	} else if (distSquaredFromCenter > 320*320) {
 		shopOpen = false;
 	}
 
 	if (player.health <= 0) loadOverlay(true);
+}
+
+function displayMessage(message) {
+	curDisplayedMessage = message;
+	curDisplayedDuration = 50;
+}
+
+function drawMessage() {
+	if (curDisplayedDuration > 0) {
+		ctx.restore();
+		ctx.fillStyle = '#fff';
+		ctx.textAlign = 'center';
+		ctx.font="bold 40px Arial";
+		ctx.fillText(curDisplayedMessage, canvas.width/2,canvas.height/2 - canvas.height/7);
+		curDisplayedDuration--;
+	}
 }
 
 function drawUI() {
