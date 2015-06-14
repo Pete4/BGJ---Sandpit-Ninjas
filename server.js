@@ -184,7 +184,7 @@ io.on('connection', function(socket) {
   });
   socket.on('refillhealth', function(response){
     var playerIsNearShop = (player.x*player.x + player.y*player.y < baseShieldRadius*baseShieldRadius)
-    if (player.cash >= healPrice && player.health <= healthLimit && playerIsNearShop) {
+    if (player.cash >= healPrice && player.health < healthLimit && playerIsNearShop) {
       player.health = Math.min(player.health+20,healthLimit);
       player.cash -= 20;
       socket.emit('refillhealth',true);
@@ -194,7 +194,7 @@ io.on('connection', function(socket) {
   });
   socket.on('upgradeshield', function(data){
     var playerIsNearShop = (player.x*player.x + player.y*player.y < baseShieldRadius*baseShieldRadius)
-    if (player.cash >= shieldPrice && playerIsNearShop && player.shield <= shieldLimit ) {
+    if (player.cash >= shieldPrice && playerIsNearShop && player.shield < shieldLimit ) {
       player.shield = Math.min(player.shield+20,shieldLimit);
       player.cash -= 50;
       socket.emit('upgradeshield',true);
@@ -616,7 +616,7 @@ function clearJunk() {
       p.furthestDistance = 0;
       p.cash += p.junk*junkPrice;
       p.junk = 0;
-      if (!p.hitShop) {
+      if (!p.hitShop && p.x*p.x + p.y*p.y < baseRadius*baseRadius) {
         p.hitShop = true;
         p.keyState = {};
         p.speedX = 0;
@@ -629,6 +629,7 @@ function clearJunk() {
 }
 
 function regenObjects() {
+
   //var belts = []
   //for (var i = 0; i < asteroids; i++) {
   //}
@@ -641,7 +642,7 @@ function fireMissiles() {
     var p = players[i];
     if (p.starterShip) var fireRate = fireRates[STARTER_SHIP];
     else var fireRate = fireRates[p.weaponLevel+1];
-    if (p.keyState[KEY_CODES.SPACE] && Date.now() - p.lastFiredTime > 1000/fireRate) {
+    if (p.keyState[KEY_CODES.SPACE] && Date.now() - p.lastFiredTime > 1000/fireRate && p.x*p.x + p.y*p.y > baseShieldRadius*baseShieldRadius) {
       //Create missile
       var socket = io.sockets.connected[p.id];
       socket.emit('newmissile',true);
@@ -653,6 +654,7 @@ function fireMissiles() {
 }
 
 function gameLoop() {
+  //console.log(asteroids.length)
   fireMissiles();
   regenObjects();
   clearJunk();
