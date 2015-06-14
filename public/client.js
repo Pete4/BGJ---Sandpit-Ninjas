@@ -1,6 +1,6 @@
 "use strict"
 //Game objects
-var playerPresets = {cash:0, x:0, y:0, angle:270, fuel:100, junk:0, health:100 ,keyState:{}, ping:0, holdLevel:0, weaponLevel:0, engineLevel:0, starterShip:true};
+var playerPresets = {furthestDistance:0, cash:0, x:0, y:0, angle:270, fuel:100, junk:0, health:100 ,keyState:{}, ping:0, holdLevel:0, weaponLevel:0, engineLevel:0, starterShip:true};
 var player = playerPresets;
 var players = []; //Other players
 var asteroids = [];
@@ -677,14 +677,17 @@ function drawUI() {
     ctx.fillText(pingText, 38, 30);
 	
 	//Display leaderboard
+	ctx.textAlign = 'middle';
+	ctx.font="bold 18px Arial";
+	ctx.fillText('Current dist: '+Math.floor(player.furthestDistance), canvas.width-160,50);
 	ctx.textAlign = 'left';
 	ctx.font="bold 25px Arial";
-	ctx.fillText('Leaderboard', canvas.width-235,50);
+	ctx.fillText('Leaderboard', canvas.width-235,100);
 	ctx.font="18px Arial";
-	var initialScoreboardHeight = 85;
+	var initialScoreboardHeight = 135;
 	for (var i = 0; i < scores.length; i++) {
-		ctx.fillText((i+1).toString()+'. '+scores[i][0], canvas.width-270,85 + (i*30));
-		ctx.fillText(scores[i][1], canvas.width-90,85 + (i*30));
+		ctx.fillText((i+1).toString()+'. '+scores[i][0], canvas.width-270,initialScoreboardHeight + (i*30));
+		ctx.fillText(scores[i][1], canvas.width-90,initialScoreboardHeight + (i*30));
 	}
 	
 	//Display fuel
