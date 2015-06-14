@@ -59,7 +59,6 @@ var audioCrash = new Audio('sound/crash.mp3');
 var audioCollectJunk = new Audio('sound/collect_junk.mp3');
 var audioGameOver = new Audio('sound/gameover.mp3');
 var audioMusic_SuperTechno = new Audio('sound/music_spacetechno.mp3');
-//26540
 
 //Utilities
 var usedKeys = [37, 38, 39, 40];
@@ -99,6 +98,9 @@ $(function() {
 	
 	//Start timed canvas updates for UI
 	setInterval(updateCanvas, frameDelay);
+	
+	//audioMusic_SuperTechno.play();
+	//setInterval(playMusic, 26550);
 });
 
 function start() {
@@ -204,31 +206,32 @@ function movePlayer(p) {
 }
 
 function checkForCollosions(p,objects) {
-  for (var i = 0; i < objects.length; i++) {
-    var o = objects[i];
-    var xDiff = p.x - o.x;
-    var yDiff = p.y - o.y;
-    var collDist = (o.width/2)*0.85 + (p.width/2)*0.85;
-    if (o.health > 0 && xDiff*xDiff + yDiff*yDiff < collDist*collDist) {
-      // Collision has occurred!
-      
-      if (o.type == 'standard') {
-        if (p.hullCapacity > p.junk) {
-          o.health -= 100;
-          p.junk += 1;
-        }
-      } else if (o.type == 'asteroid') {
-        o.health -= 100;
-        p.lastCollisionTime = Date.now();
-        if (p.shield >= 20) p.shield -= 20;
-        else if (p.shield == 0) p.health -= 20;
-        else {
-          p.health -= (20-p.shield);
-          p.shield = 0;
-        }
-      }
-    }
-  }
+	for (var i = 0; i < objects.length; i++) {
+		var o = objects[i];
+		var xDiff = p.x - o.x;
+		var yDiff = p.y - o.y;
+		var collDist = (o.width/2)*0.85 + (p.width/2)*0.85;
+		if (o.health > 0 && xDiff*xDiff + yDiff*yDiff < collDist*collDist) {
+			// Collision has occurred!
+			if (o.type == 'standard') {
+				if (p.hullCapacity > p.junk) {
+					audioCollectJunk.play();
+					o.health -= 100;
+					p.junk += 1;
+				}
+			} else if (o.type == 'asteroid') {
+				audioCrash.play();
+				o.health -= 100;
+				p.lastCollisionTime = Date.now();
+				if (p.shield >= 20) p.shield -= 20;
+				else if (p.shield == 0) p.health -= 20;
+				else {
+					p.health -= (20-p.shield);
+					p.shield = 0;
+				}
+			}
+		}
+	}
 }
 
 function playShipSoundEffect(p) {
@@ -254,6 +257,9 @@ function stopShipSoundEffects() {
 	audioEngineStart.currentTime = 0;
 	audioEngineStop.currentTime = 0;
 	audioEngineOn.currentTime = 0;
+	audioEngineStart.volume = 0.6;
+	audioEngineStop.volume = 0.6;
+	audioEngineOn.volume = 0.6;
 }
 
 function drawObjects() {
@@ -311,6 +317,12 @@ function updateCanvas() {
 	if (player.health <= 0) loadOverlay(true);
 }
 
+function playMusic() {
+	audioMusic_SuperTechno.pause();
+	audioMusic_SuperTechno.currentTime = 0;
+	audioMusic_SuperTechno.play();
+}
+
 function drawUI() {
 	//Display ping, health and sheilds (temporary).
 	ctx.fillStyle="#fff";
@@ -319,7 +331,7 @@ function drawUI() {
     ctx.fillText(pingText, 20, 30);
 	
 	//Display shield
-	var shieldHeightOffset = 190;
+	var shieldHeightOffset = 170;
 	var shieldBars = Math.floor(player.shield/20);
 	var shieldExcess = player.health % 20;
 	ctx.drawImage(shieldImage, 20, canvas.height-shieldHeightOffset);
@@ -339,7 +351,7 @@ function drawUI() {
 	}
 	
 	//Display health
-	var healthHeightOffset = 140;
+	var healthHeightOffset = 130;
 	var healthBars = Math.floor(player.health/20);
 	var healthExcess = player.health % 20;
 	ctx.drawImage(healthImage, 20, canvas.height-healthHeightOffset);
