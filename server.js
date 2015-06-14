@@ -331,11 +331,11 @@ function checkPlayers() {
 
 function getScores() {
   if (players.length != 0) {
-    scores = [[players[0].name,players[0].score]];
+    scores = [[players[0].name,players[0].cash]];
     for (var i = 1; i < players.length; i++) {
       for (var j = 0; j < scores.length + 1; j++) {
-        if (j == scores.length || players[i].score > scores[j][1]) {
-          scores.splice(j,0,[players[i].name,players[i].score]);
+        if (j == scores.length || players[i].cash > scores[j][1]) {
+          scores.splice(j,0,[players[i].name,players[i].cash]);
           break;
         }
       }
