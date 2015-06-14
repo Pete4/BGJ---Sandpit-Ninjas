@@ -1,6 +1,6 @@
 "use strict"
 //Game objects
-var playerPresets = {x:0, y:0, angle:270, fuel:100, junk:0, health:100 ,keyState:{}, ping:0, holdLevel:0, weaponLevel:0, engineLevel:0, starterShip:true};
+var playerPresets = {cash:0, x:0, y:0, angle:270, fuel:100, junk:0, health:100 ,keyState:{}, ping:0, holdLevel:0, weaponLevel:0, engineLevel:0, starterShip:true};
 var player = playerPresets;
 var players = []; //Other players
 var asteroids = [];
@@ -52,6 +52,30 @@ var blueWideBarImage = new Image; blueWideBarImage.src = 'images/BlueWideBar.png
 var spawnImage = new Image; spawnImage.src = 'images/spawn.png';
 var arrowImage = new Image; arrowImage.src = 'images/Arrow.png';
 var shipShieldImage = new Image; shipShieldImage.src = 'images/Shield.png';
+
+var euroBlueImage = new Image; euroBlueImage.src = 'images/EuroBlue.png';
+
+var zeroBlueImage = new Image; zeroBlueImage.src = 'images/0Blue.png';
+var oneBlueImage = new Image; oneBlueImage.src = 'images/1Blue.png';
+var twoBlueImage = new Image; twoBlueImage.src = 'images/2Blue.png';
+var threeBlueImage = new Image; threeBlueImage.src = 'images/3Blue.png';
+var fourBlueImage = new Image; fourBlueImage.src = 'images/4Blue.png';
+var fiveBlueImage = new Image; fiveBlueImage.src = 'images/5Blue.png';
+var sixBlueImage = new Image; sixBlueImage.src = 'images/6Blue.png';
+var sevenBlueImage = new Image; sevenBlueImage.src = 'images/7Blue.png';
+var eightBlueImage = new Image; eightBlueImage.src = 'images/8Blue.png';
+var nineBlueImage = new Image; nineBlueImage.src = 'images/9Blue.png';
+
+var zeroPinkImage = new Image; zeroPinkImage.src = 'images/0Pink.png';
+var onePinkImage = new Image; onePinkImage.src = 'images/1Pink.png';
+var twoPinkImage = new Image; twoPinkImage.src = 'images/2Pink.png';
+var threePinkImage = new Image; threePinkImage.src = 'images/3Pink.png';
+var fourPinkImage = new Image; fourPinkImage.src = 'images/4Pink.png';
+var fivePinkImage = new Image; fivePinkImage.src = 'images/5Pink.png';
+var sixPinkImage = new Image; sixPinkImage.src = 'images/6Pink.png';
+var sevenPinkImage = new Image; sevenPinkImage.src = 'images/7Pink.png';
+var eightPinkImage = new Image; eightPinkImage.src = 'images/8Pink.png';
+var ninePinkImage = new Image; ninePinkImage.src = 'images/9Pink.png';
 
 //Modular ship images
 var shipCockpit = new Image(); shipCockpit.src = 'images/ShipCockpit.png';
@@ -748,4 +772,63 @@ function drawUI() {
 	ctx.drawImage(arrowImage, -24, -37, 48, 75);
     ctx.restore();
 	
+	//Display money
+	var cashWidthOffset = 305;
+	var cashHeightOffset = 60;
+	ctx.drawImage(euroBlueImage, cashWidthOffset, canvas.height-cashHeightOffset);
+	for (var i = 1; i <= player.cash.toString().length; i++) {
+		if (i % 2 == 0) {
+			ctx.drawImage(getBlueNumImage(player.cash.toString()[i-1]), cashWidthOffset + (20*i) + 8, canvas.height-cashHeightOffset+2);
+		} else {
+			ctx.drawImage(getPinkNumImage(player.cash.toString()[i-1]), cashWidthOffset + (20*i) + 8, canvas.height-cashHeightOffset+2);
+		}
+	}
+}
+
+function getBlueNumImage(num) {
+	if (num == '0') {
+		return zeroBlueImage
+	} else if (num == '1') {
+		return oneBlueImage
+	} else if (num == '2') {
+		return twoBlueImage
+	} else if (num == '3') {
+		return threeBlueImage
+	} else if (num == '4') {
+		return fourBlueImage
+	} else if (num == '5') {
+		return fiveBlueImage
+	} else if (num == '6') {
+		return sixBlueImage
+	} else if (num == '7') {
+		return sevenBlueImage
+	} else if (num == '8') {
+		return eightBlueImage
+	} else if (num == '9') {
+		return nineBlueImage
+	}
+}
+
+function getPinkNumImage(num) {
+	if (num == '0') {
+		return zeroPinkImage
+	} else if (num == '1') {
+		return onePinkImage
+	} else if (num == '2') {
+		return twoPinkImage
+	} else if (num == '3') {
+		return threePinkImage
+	} else if (num == '4') {
+		return fourPinkImage
+	} else if (num == '5') {
+		return fivePinkImage
+	} else if (num == '6') {
+		return sixPinkImage
+	} else if (num == '7') {
+		return sevenPinkImage
+	} else if (num == '8') {
+		return eightPinkImage
+	} else if (num == '9') {
+		return ninePinkImage
+	}
 }
