@@ -34,6 +34,7 @@ var fuelImage = new Image;
 var junkImage = new Image;
 var blueBarImage = new Image;
 var pinkBarImage = new Image;
+var blueWideBarImage = new Image;
 var spawnImage = new Image;
 spaceshipStationary.src = 'images/FirstSpace_NoFlame.png';
 spaceshipLeft.src = 'images/FirstSpace_RightFlame.png';
@@ -51,6 +52,7 @@ fuelImage.src = 'images/FuelIcon.png';
 junkImage.src = 'images/JunkIcon.png';
 blueBarImage.src = 'images/BlueBar.png';
 pinkBarImage.src = 'images/PinkBar.png';
+blueWideBarImage.src = 'images/BlueWideBar.png';
 spawnImage.src = 'images/spawn.png';
 
 //Load sound effects
@@ -418,7 +420,7 @@ function drawUI() {
 	}
 	
 	//Display fuel
-	var fuelHeightOffset =170;
+	var fuelHeightOffset =240;
 	var fuelBars = Math.floor(player.fuel/20);
 	var fuelExcess = player.fuel % 20;
 	ctx.drawImage(fuelImage, 20, canvas.height-fuelHeightOffset);
@@ -441,7 +443,7 @@ function drawUI() {
 	}
 	
 	//Display health
-	var healthHeightOffset = 130;
+	var healthHeightOffset = 200;
 	var healthBars = Math.floor(player.health/20);
 	var healthExcess = player.health % 20;
 	ctx.drawImage(healthImage, 20, canvas.height-healthHeightOffset);
@@ -461,7 +463,7 @@ function drawUI() {
 	}
 	
 	//Display shield
-	var shieldHeightOffset = 90;
+	var shieldHeightOffset = 160;
 	var shieldBars = Math.floor(player.shield/20);
 	var shieldExcess = player.health % 20;
 	ctx.drawImage(shieldImage, 20, canvas.height-shieldHeightOffset);
@@ -481,7 +483,7 @@ function drawUI() {
 	}
 	
 	//Display cargo
-	var junkHeightOffset = 50;
+	var junkHeightOffset = 120;
 	ctx.drawImage(junkImage, 20, canvas.height-junkHeightOffset);
 	for (var i = 1; i <= player.junk; i++) {
 		if (i % 2 == 0) {
@@ -490,4 +492,7 @@ function drawUI() {
 			ctx.drawImage(pinkBarImage, 110 + (i*20), canvas.height-junkHeightOffset);
 		}
 	}
+	
+	//Horizontal bar
+	ctx.drawImage(blueWideBarImage, 20, canvas.height-80);
 }
