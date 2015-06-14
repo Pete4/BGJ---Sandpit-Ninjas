@@ -7,7 +7,7 @@ function Player(id,name) {
   this.canvasSize = {width:1980,height:1024};
   this.fuel = 60;
   this.junk = 0;
-  this.health = 100;
+  this.health = 1000;
   this.shield = 0;
   this.cash = 5000;
   this.width = 64;
@@ -24,14 +24,13 @@ function Player(id,name) {
   this.pingStart = 0;
   this.keyState = {};
   this.state = 0;
-  this.fuelCapacity = 60;
-  this.junkCapacity = 5;
   this.holdLevel = 0;
   this.weaponLevel = 0;
   this.engineLevel = 0;
-  this.starterShip = true;
-  this.weaponDamage = 10;
+  this.starterShip = false;
   this.lastCollisionTime = 0;
+  this.hitShop = false;
+  this.lastFiredTime = 0;
 
   return {
     id: this.id,
@@ -59,14 +58,13 @@ function Player(id,name) {
     pingStart: this.pingStart,
     keyState: this.keyState,
     state: this.state,
-    fuelCapacity: this.fuelCapacity,
-    junkCapacity: this.junkCapacity,
     weaponLevel: this.weaponLevel,
     holdLevel: this.holdLevel,
     engineLevel: this.engineLevel,
     starterShip: this.starterShip,
-    weaponDamage: this.weaponDamage,
-    lastCollisionTime: this.lastCollisionTime
+    lastCollisionTime: this.lastCollisionTime,
+    hitShop: this.hitShop,
+    lastFiredTime: this.lastFiredTime
   };
 }
 exports.Player = Player;

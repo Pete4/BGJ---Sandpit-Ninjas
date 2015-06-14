@@ -3,7 +3,7 @@ function Asteroid(id,x,y,angle,ind) {
   this.ind = ind;
   this.x = x;
   this.y = y;
-  this.health = 100;
+  this.health = 20;
   this.angle = angle;
   this.width = 64;
   this.height = 64;

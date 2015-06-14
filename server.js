@@ -9,6 +9,7 @@ var fs = require('fs');
 var Player = require('./Player.js').Player;
 var Asteroid = require('./Asteroid.js').Asteroid;
 var Resource = require('./Resource.js').Resource;
+var Missile = require('./Missile.js').Missile;
 var sitePrefix = './public';
 var site = fs.realpathSync('.') + path.sep + 'public';
 var OK = 200, Redirect = 307, NotFound = 404, BadType = 415, Error = 500;
@@ -51,15 +52,24 @@ var spectators = [];
 var players = [];
 var asteroids = [];
 var resources = [];
+var missiles = [];
 var scores = [];
-var numAsteroids = 1000;
+//var numAsteroids = 1000;
+var healthLimit = 100;
+var shieldLimit = 200;
 var numResources = 200;
-
+var asteroidBelts = [[400,1000,0.00002,0.00001,0,360],[1000,1100,0.0004,0.00001,0,360],[1150,2000,0.00006,0.00006,0,360],[2200,3000,0.0001,0.0001,0,360]];
 var baseRadius = 300;
 var junkPrice = 10;
 var gridSize = 500;
 var idCounter = 0;
 var frameDelay = 40;
+var missileSpeed = 100;
+var fireRates = [0,1,2,4];
+var fuelCapacities = [60,120,240,480];
+var junkCapacities = [5,10,20,40];
+var weaponDamage = [0,20,40,60]
+var STARTER_SHIP = 0;
 var KEY_CODES = {
   LEFT: 37,
   UP: 38,
@@ -78,6 +88,12 @@ var shieldPrice = 50;
 var holdPrice = 100;
 var weaponPrice = 100;
 var enginePrice = 100;
+
+//Grid variables
+var numNegXGrids = -Math.min(Math.floor(mapCurrXLimits[0]/gridSize),0);
+var numNegYGrids = -Math.min(Math.floor(mapCurrYLimits[0]/gridSize),0);
+var lastXGridIndex = Math.ceil((mapCurrXLimits[1]-mapCurrXLimits[0])/gridSize);
+var lastYGridIndex = Math.ceil((mapCurrYLimits[1]-mapCurrYLimits[0])/gridSize);
 
 io.on('connection', function(socket) {
   if (players.length == 0) console.log('A user connected. There is now '+(spectators.length+players.length+1).toString()+' user.');
@@ -142,8 +158,11 @@ io.on('connection', function(socket) {
     }
   });
   socket.on('refillfuel', function(response){
-    if (player.cash >= fuelPrice && player.fuelCapacity >= 20 + player.fuel) {
-      player.fuel += 20;
+    var playerIsNearShop = (player.x*player.x + player.y*player.y< (baseRadius+10)*(baseRadius+10))
+    if (player.starterShip) var fuelCapacity = fuelCapacities[STARTER_SHIP];
+    else var fuelCapacity = fuelCapacities[player.holdLevel+1];
+    if (player.cash >= fuelPrice && player.fuel < fuelCapacity && playerIsNearShop) {
+      player.fuel = Math.min(player.fuel+20,fuelCapacity);
       player.cash -= 20;
       socket.emit('refillfuel',true);
     } else {
@@ -151,17 +170,19 @@ io.on('connection', function(socket) {
     }
   });
   socket.on('refillhealth', function(response){
-    if (player.cash >= healPrice) {
-      player.health += 20;
+    var playerIsNearShop = (player.x*player.x + player.y*player.y< (baseRadius+10)*(baseRadius+10))
+    if (player.cash >= healPrice && player.health <= healthLimit && playerIsNearShop) {
+      player.health = Math.min(player.health+20,healthLimit);
       player.cash -= 20;
       socket.emit('refillhealth',true);
     } else {
       socket.emit('refillhealth',false);
     }
   });
-  socket.on('upgradeshield', function(data) {
-    if (player.cash >= shieldPrice) {
-      player.shield += 20;
+  socket.on('upgradeshield', function(data){
+    var playerIsNearShop = (player.x*player.x + player.y*player.y< (baseRadius+10)*(baseRadius+10))
+    if (player.cash >= shieldPrice && playerIsNearShop) {
+      player.shield = Math.min(player.shield+20,shieldLimit);
       player.cash -= 50;
       socket.emit('upgradeshield',true);
     } else {
@@ -169,7 +190,8 @@ io.on('connection', function(socket) {
     }
   });
   socket.on('upgradeship', function(response){
-    if (player.starterShip && player.cash >= holdPrice) {
+    var playerIsNearShop = (player.x*player.x + player.y*player.y< (baseRadius+10)*(baseRadius+10))
+    if (player.starterShip && player.cash >= holdPrice && playerIsNearShop) {
       player.starterShip = false;
       player.junkCapacity += 20;
       player.fuelCapacity += 20;
@@ -180,10 +202,9 @@ io.on('connection', function(socket) {
     }
   });
   socket.on('upgradehold', function(response){
-    if (!player.starterShip && player.cash >= holdPrice && player.holdLevel < 2) {
+    var playerIsNearShop = (player.x*player.x + player.y*player.y< (baseRadius+10)*(baseRadius+10))
+    if (!player.starterShip && player.cash >= holdPrice && player.holdLevel < 2 && playerIsNearShop) {
       player.holdLevel += 1;
-      player.junkCapacity += 20;
-      player.fuelCapacity += 20;
       player.cash -= 100;
       socket.emit('upgradehold',true);
     } else {
@@ -191,7 +212,8 @@ io.on('connection', function(socket) {
     }
   });
   socket.on('upgradeweapon', function(response){
-    if (!player.starterShip && player.cash >= weaponPrice && player.weaponLevel < 2) {
+    var playerIsNearShop = (player.x*player.x + player.y*player.y< (baseRadius+10)*(baseRadius+10))
+    if (!player.starterShip && player.cash >= weaponPrice && player.weaponLevel < 2 && playerIsNearShop) {
       player.weaponLevel += 1;
       player.weaponDamage += 100
       player.cash -= 100;
@@ -201,10 +223,11 @@ io.on('connection', function(socket) {
     }
   });
   socket.on('upgradeengine', function(response){
-    if (!player.starterShip && player.cash >= enginePrice && player.engineLevel < 2) {
+    var playerIsNearShop = (player.x*player.x + player.y*player.y< (baseRadius+10)*(baseRadius+10))
+    if (!player.starterShip && player.cash >= enginePrice && player.engineLevel < 2 && playerIsNearShop) {
       player.engineLevel += 1;
-      player.accelerationX += 10;
-      player.accelerationY += 10;
+      player.accelerationX += 20;
+      player.accelerationY += 20;
       player.cash -= 100;
       socket.emit('upgradeengine',true);
     } else {
@@ -226,14 +249,29 @@ function genID() {
 }
 
 function genAsteroidsAndResources() {
-  var width = 6000;
-  var height = 6000;
-  for (var i = 0; i < numAsteroids; i++) {
+  for (var i = 0; i < asteroidBelts.length; i++) {
+    var b = asteroidBelts[i];
+    var width = b[1]-b[0];
+    var area = Math.PI*(b[1]*b[1] - b[0]*b[0]);
+    var numAsteroids = area*b[2];
+    var numResources = area*b[3];
+    for (var j = 0; j < numAsteroids; j++) {
+      var r = Math.random()*(b[1]-b[0])+b[0];
+      var angle = Math.floor(Math.random()*360);
+      asteroids.push(new Asteroid(genID(),r*Math.cos(angle),r*Math.sin(angle),Math.floor(Math.random()*360),i));
+    }
+    for (var j = 0; j < numResources; j++) {
+      var r = Math.random()*(b[1]-b[0])+b[0];
+      var angle = Math.floor(Math.random()*360);
+      resources.push(new Resource(genID(),r*Math.cos(angle),r*Math.sin(angle),Math.floor(Math.random()*360),'standard',i));
+    }
+  }
+  /*for (var i = 0; i < numAsteroids; i++) {
     asteroids.push(new Asteroid(genID(),(Math.random()*width)-(width/2),(Math.random()*height)-(height/2),Math.floor(Math.random()*360),i));
-  }
-  for (var i = 0; i < numResources; i++) {
+  }*/
+  /*for (var i = 0; i < numResources; i++) {
     resources.push(new Resource(genID(),(Math.random()*width)-(width/2),(Math.random()*height)-(height/2),'standard',i));
-  }
+  }*/
 }
 
 function movePlayers() {
@@ -270,26 +308,71 @@ function acceleratePlayers() {
     var delta = (Date.now()-p.lastMovedTime)/1000.0;
     if (Date.now() - p.lastCollisionTime > 500) {
       if (p.keyState[KEY_CODES.LEFT]) {
-        p.fuel -= delta;
-        p.state = 1;
-        p.angle = (p.angle - p.rotationSpeed*delta) % 360;
-        if (p.angle < 0) p.angle += 360;
+        if (p.fuel >= delta) {
+          p.fuel -= delta;
+          p.state = 1;
+          p.angle = (p.angle - p.rotationSpeed*delta) % 360;
+          if (p.angle < 0) p.angle += 360;
+        }
       } else if (p.keyState[KEY_CODES.RIGHT]) {
-        p.fuel -= delta;
-        p.state = 2;
-        p.angle = (p.angle + p.rotationSpeed*delta) % 360;
-        if (p.angle < 0) p.angle += 360;
+        if (p.fuel >= delta) {
+          p.fuel -= delta;
+          p.state = 2;
+          p.angle = (p.angle + p.rotationSpeed*delta) % 360;
+          if (p.angle < 0) p.angle += 360;
+        }
       } else if (p.keyState[KEY_CODES.UP]) {
-        p.speedX += p.accelerationX*delta*Math.cos(TO_RADIANS*p.angle);
-        p.speedY += p.accelerationY*delta*Math.sin(TO_RADIANS*p.angle);
-        p.fuel -= delta;
-        p.state = 3;
+        if (p.fuel >= delta) {
+          p.speedX += p.accelerationX*delta*Math.cos(TO_RADIANS*p.angle);
+          p.speedY += p.accelerationY*delta*Math.sin(TO_RADIANS*p.angle);
+          p.fuel -= delta;
+          p.state = 3;
+        }
       } else {
         p.state = 0;
       }
       p.x += p.speedX*delta;//*Math.cos(TO_RADIANS*p.angle);
       p.y += p.speedY*delta;//*Math.sin(TO_RADIANS*p.angle);
       p.lastMovedTime = Date.now();
+      if (p.x - p.canvasSize.width/2 - 100 < mapCurrXLimits[0]) {
+        mapCurrXLimits[0] = p.x - p.canvasSize.width/2 - 100;
+        updateGrids();
+      }
+      if (p.x + p.canvasSize.width/2 + 100 > mapCurrXLimits[1]) {
+        mapCurrXLimits[1] = p.x + p.canvasSize.width/2 + 100;
+        updateGrids();
+      }
+      if (p.y - p.canvasSize.height/2 - 100 < mapCurrYLimits[0]) {
+        mapCurrYLimits[0] = p.y - p.canvasSize.height/2 - 100;
+        updateGrids();
+      }
+      if (p.y + p.canvasSize.height/2 + 100 > mapCurrYLimits[1]) {
+        mapCurrYLimits[1] = p.y + p.canvasSize.height/2 + 100;
+        updateGrids();
+      }
+    } else {
+      p.lastMovedTime = Date.now();
+    }
+  } 
+}
+
+function updateGrids() {
+  numNegXGrids = -Math.min(Math.floor(mapCurrXLimits[0]/gridSize),0);
+  numNegYGrids = -Math.min(Math.floor(mapCurrYLimits[0]/gridSize),0);
+  lastXGridIndex = Math.ceil((mapCurrXLimits[1]-mapCurrXLimits[0])/gridSize);
+  lastYGridIndex = Math.ceil((mapCurrYLimits[1]-mapCurrYLimits[0])/gridSize);
+}
+
+function moveMissiles() {
+  for (var i = 0; i < missiles.length; i++) {
+    var m = missiles[i];
+    var delta = (Date.now()-m.lastMovedTime)/1000.0;
+    m.x += missileSpeed*delta*Math.cos(TO_RADIANS*m.angle);
+    m.y += missileSpeed*delta*Math.sin(TO_RADIANS*m.angle);
+    m.lastMovedTime = Date.now();
+    if (m.x < mapCurrXLimits[0] || m.x > mapCurrXLimits[1] || m.y < mapCurrYLimits[0] || m.y > mapCurrYLimits[1]) {
+      missiles.splice(i,1);
+      i--;
     }
   }
 }
@@ -298,27 +381,24 @@ function sortObjectsIntoGrids(objects) {
   var grids = [];
   for (var w = mapCurrXLimits[0]; w <= mapCurrXLimits[1]; w += gridSize) {
     var gridCol = [];
-    for (var h = mapCurrXLimits[0]; h <= mapCurrXLimits[1]; h += gridSize) {
+    for (var h = mapCurrYLimits[0]; h <= mapCurrYLimits[1]; h += gridSize) {
       gridCol.push([]);
     }
     grids.push(gridCol);
   }
-  var numNegXGrids = -Math.min(mapCurrXLimits[0]/gridSize,0);
-  var numNegYGrids = -Math.min(mapCurrYLimits[0]/gridSize,0);
+  var numNegXGrids = -Math.min(Math.floor(mapCurrXLimits[0]/gridSize),0);
+  var numNegYGrids = -Math.min(Math.floor(mapCurrYLimits[0]/gridSize),0);
   for (var i = 0; i < objects.length; i++) {
     grids[Math.floor(objects[i].x/gridSize)+numNegXGrids][Math.floor(objects[i].y/gridSize)+numNegYGrids].push(objects[i]);
   }
   return grids;
 }
 
-function calculateRequiredObjects(p,gridPlayers,gridAsteroids,gridResources) {
+function calculateRequiredObjects(p,gridPlayers,gridAsteroids,gridResources,gridMissiles) {
   var playersToSend = [];
   var asteroidsToSend = [];
   var resourcesToSend = [];
-  var numNegXGrids = -Math.min(mapCurrXLimits[0]/gridSize,0);
-  var numNegYGrids = -Math.min(mapCurrYLimits[0]/gridSize,0);
-  var lastXGridIndex = Math.ceil((mapCurrXLimits[1]-mapCurrXLimits[0])/gridSize);
-  var lastYGridIndex = Math.ceil((mapCurrYLimits[1]-mapCurrYLimits[0])/gridSize);
+  var missilesToSend = [];
   var startXGrid = Math.max(Math.floor((p.x-(p.canvasSize.width/2))/gridSize)+numNegXGrids,0);
   var endXGrid = Math.min(Math.floor((p.x+(p.canvasSize.width/2))/gridSize)+numNegXGrids,lastXGridIndex);
   var startYGrid = Math.max(Math.floor((p.y-(p.canvasSize.height/2))/gridSize)+numNegYGrids,0);
@@ -328,12 +408,14 @@ function calculateRequiredObjects(p,gridPlayers,gridAsteroids,gridResources) {
       playersToSend = playersToSend.concat(gridPlayers[x][y]);
       asteroidsToSend = asteroidsToSend.concat(gridAsteroids[x][y]);
       resourcesToSend = resourcesToSend.concat(gridResources[x][y]);
+      missilesToSend = missilesToSend.concat(gridMissiles[x][y]);
     }
   }
   return {
     players: playersToSend,
     asteroids: asteroidsToSend,
-    resources: resourcesToSend
+    resources: resourcesToSend,
+    missiles: missiles
   };
 }
 
@@ -346,18 +428,49 @@ function checkForCollosions(p,objects) {
     if (o.health > 0 && xDiff*xDiff + yDiff*yDiff < collDist*collDist) {
       // Collision has occurred!
       if (o.type == 'standard') {
-        if (p.junkCapacity > p.junk) {
-          o.health -= 100;
+        if (player.starterShip) var junkCapacity = junkCapacities[STARTER_SHIP];
+        else var junkCapacity = junkCapacities[player.holdLevel+1];
+        if (junkCapacity > p.junk) {
+          o.health -= 20;
           p.junk += 1;
         }
       } else if (o.type == 'asteroid') {
-        o.health -= 100;
+        o.health -= 20;
         p.lastCollisionTime = Date.now();
         if (p.shield >= 20) p.shield -= 20;
         else if (p.shield == 0) p.health -= 20;
         else {
           p.health -= (20-p.shield);
           p.shield = 0;
+        }
+      } else if (o.type == 'misslies') {
+        o.health -= 20;
+        p.lastCollisionTime = Date.now();
+        if (p.shield >= 20) p.shield -= 20;
+        else if (p.shield == 0) p.health -= 20;
+        else {
+          p.health -= (20-p.shield);
+          p.shield = 0;
+        }
+      }
+    }
+  }
+}
+
+function asteroidMissileCollisions(gridAsteroids,gridMissiles) {
+  for (var x = 0; x < gridAsteroids.length; x++) {
+    for (var y = 0; y < gridAsteroids[x].length; y++) {
+      for (var i = 0; i < gridAsteroids[x][y].length; i++) {
+        for (var j = 0; j < gridMissiles[x][y].length; j++) {
+          var a = gridAsteroids[x][y][i];
+          var m = gridMissiles[x][y][j];
+          var xDiff = a.x - m.x;
+          var yDiff = a.y - m.y;
+          var collDist = (a.width/2) + (m.width/2);
+          if (a.health > 0 && m.health > 0 && xDiff*xDiff + yDiff*yDiff < collDist*collDist) {
+            a.health -= 20;
+            m.health -= 20;
+          }
         }
       }
     }
@@ -371,21 +484,29 @@ function sendUpdates() {
   for (var i = 0; i < resources.length; i++) {
     resources[i].ind = i;
   }
+  for (var i = 0; i < missiles.length; i++) {
+    missiles[i].ind = i;
+  }
   var deleteAsteroidList = [];
   var deleteResourceList = [];
+  var deleteMissilesList = [];
   var gridPlayers = sortObjectsIntoGrids(players);
   var gridAsteroids = sortObjectsIntoGrids(asteroids);
   var gridResources = sortObjectsIntoGrids(resources);
+  var gridMissiles = sortObjectsIntoGrids(missiles);
+
+  asteroidMissileCollisions(gridAsteroids,gridMissiles);
 
   for (var i = 0; i < players.length; i++) {
     var p = players[i];
     var socket = io.sockets.connected[p.id];
     
     // Find out what each user should be able to see
-    var objsToSend = calculateRequiredObjects(p,gridPlayers,gridAsteroids,gridResources);
+    var objsToSend = calculateRequiredObjects(p,gridPlayers,gridAsteroids,gridResources,gridMissiles);
 
     checkForCollosions(p,objsToSend.asteroids);
     checkForCollosions(p,objsToSend.resources);
+    checkForCollosions(p,objsToSend.missiles);
 
     for (var j = 0; j < objsToSend.asteroids.length; j++) {
       var ind = objsToSend.asteroids[j].ind;
@@ -404,6 +525,11 @@ function sendUpdates() {
       if (resources[ind].health <= 0) deleteResourceList.push(ind);
     }
 
+    for (var j = 0; j < objsToSend.missiles.length; j++) {
+      var ind = objsToSend.missiles[j].ind;
+      if (missiles[ind].health <= 0) deleteMissilesList.push(ind);
+    }
+
     // Send updates
     if (typeof(socket) != 'undefined') {
       socket.emit('player',p);
@@ -416,7 +542,7 @@ function sendUpdates() {
   for (var i = 0; i < spectators.length; i++) {
     var s = spectators[i];
     var socket = io.sockets.connected[s.id];
-    var objsToSend = calculateRequiredObjects(s,gridPlayers,gridAsteroids,gridResources);
+    var objsToSend = calculateRequiredObjects(s,gridPlayers,gridAsteroids,gridResources,gridMissiles);
     objsToSend.scores = scores;
     if (typeof(socket) != 'undefined') {
       socket.emit('gamedata',objsToSend);
@@ -428,6 +554,9 @@ function sendUpdates() {
   }
   for(var i = deleteResourceList.length-1; i >= 0; i--) {
     resources.splice(deleteResourceList[i],1);
+  }
+  for(var i = deleteMissilesList.length-1; i >= 0; i--) {
+    missiles.splice(deleteMissilesList[i],1);
   }
 }
 
@@ -461,14 +590,44 @@ function clearJunk() {
     if (p.x*p.x + p.y*p.y < baseRadius*baseRadius) {
       p.cash += p.junk*junkPrice;
       p.junk = 0;
+      if (!p.hitShop) {
+        p.hitShop = true;
+        p.keyState = {};
+        p.speedX = 0;
+        p.speedY = 0;
+      }
+    } else {
+      p.hitShop = false;
+    }
+  }
+}
+
+function regenObjects() {
+  //run every 10 seconds
+  // calculate density of asteroids in each ring, compare to set levels
+}
+
+function fireMissiles() {
+  for (var i = 0; i < players.length; i++) {
+    var p = players[i];
+    if (p.starterShip) var fireRate = fireRates[STARTER_SHIP];
+    else var fireRate = fireRates[p.weaponLevel+1];
+    if (p.keyState[KEY_CODES.SPACE] && Date.now() - p.lastFiredTime > 1000/fireRate) {
+      //Create missile
+      var missile = new Missile(genID(),p.x+5*Math.cos(p.angle*TO_RADIANS),p.y+5*Math.sin(p.angle*TO_RADIANS),p.angle,missiles.length);
+      missiles.push(missile);
+      p.lastFiredTime = Date.now();
     }
   }
 }
 
 function gameLoop() {
+  fireMissiles();
+  regenObjects();
   clearJunk();
   checkPlayers();
   acceleratePlayers();
+  moveMissiles();
   getScores();
   sendUpdates();
 }

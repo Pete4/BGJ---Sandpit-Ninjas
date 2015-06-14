@@ -4,7 +4,7 @@ function Resource(id,x,y,type,ind) {
   this.x = x;
   this.y = y;
   this.type = type;
-  this.health = 100;
+  this.health = 20;
   this.width = 32;
   this.height = 32;
 
