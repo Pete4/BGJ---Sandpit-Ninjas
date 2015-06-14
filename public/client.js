@@ -51,6 +51,7 @@ var pinkBarImage = new Image; pinkBarImage.src = 'images/PinkBar.png';
 var blueWideBarImage = new Image; blueWideBarImage.src = 'images/BlueWideBar.png';
 var spawnImage = new Image; spawnImage.src = 'images/spawn.png';
 var arrowImage = new Image; arrowImage.src = 'images/Arrow.png';
+var shipShieldImage = new Image; shipShieldImage.src = 'images/Shield.png';
 
 //Modular ship images
 var shipCockpit = new Image(); shipCockpit.src = 'images/ShipCockpit.png';
@@ -83,6 +84,7 @@ var audioMoney = new Audio('sound/money.mp3');
 var audioUpgrade = new Audio('sound/upgrade.mp3');
 var audioHeal = new Audio('sound/heal.mp3');
 var audioFuel = new Audio('sound/fuel.mp3');
+var audioMissile = new Audio('sound/rocket.mp3');
 
 //Utilities
 var usedKeys = [37, 38, 39, 40, 32];
@@ -325,6 +327,9 @@ function registerSocketHooks() {
 			if (!soundMuted) audioError.play();
 		}
 		updateDisplayedShopItems();
+    });
+	socket.on('newmissile', function(response){
+		if (!soundMuted) audioMissile.play();
     });
 }
 
