@@ -1,4 +1,4 @@
-function Missile(id,x,y,angle,ind) {
+function Missile(id,x,y,angle,ind,shooterID) {
   this.id = id;
   this.x = x;
   this.y = y;
@@ -8,6 +8,7 @@ function Missile(id,x,y,angle,ind) {
   this.height = 25;
   this.type = 'missile';
   this.lastMovedTime = Date.now();
+  this.shooterID = shooterID;
   
   return {
     id: this.id,
@@ -19,7 +20,8 @@ function Missile(id,x,y,angle,ind) {
     width: this.width,
     height: this.height,
     type: this.type,
-    lastMovedTime: this.lastMovedTime
+    lastMovedTime: this.lastMovedTime,
+    shooterID: this.shooterID
   };
 }
 exports.Missile = Missile;

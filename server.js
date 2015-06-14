@@ -443,7 +443,7 @@ function checkForCollosions(p,objects) {
           p.health -= (20-p.shield);
           p.shield = 0;
         }
-      } else if (o.type == 'misslies') {
+      } else if (o.type == 'missile' && o.shooterID != p.id) {
         o.health -= 20;
         p.lastCollisionTime = Date.now();
         if (p.shield >= 20) p.shield -= 20;
@@ -537,6 +537,8 @@ function sendUpdates() {
       socket.emit('gamedata',objsToSend);
     } else {
       console.log('Warning: Socket undefined.')
+      players.splice(i);
+      i--;
     }
   }
   for (var i = 0; i < spectators.length; i++) {
@@ -614,7 +616,7 @@ function fireMissiles() {
     else var fireRate = fireRates[p.weaponLevel+1];
     if (p.keyState[KEY_CODES.SPACE] && Date.now() - p.lastFiredTime > 1000/fireRate) {
       //Create missile
-      var missile = new Missile(genID(),p.x+5*Math.cos(p.angle*TO_RADIANS),p.y+5*Math.sin(p.angle*TO_RADIANS),p.angle,missiles.length);
+      var missile = new Missile(genID(),p.x+5*Math.cos(p.angle*TO_RADIANS),p.y+5*Math.sin(p.angle*TO_RADIANS),p.angle,missiles.length,p.id);
       missiles.push(missile);
       p.lastFiredTime = Date.now();
     }

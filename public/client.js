@@ -5,6 +5,7 @@ var player = playerPresets;
 var players = []; //Other players
 var asteroids = [];
 var resources = [];
+var missiles = [];
 var scores = [];
 var canvas = $("#game-canvas")[0];
 var canvasSize = {height:0, width:0}
@@ -34,6 +35,7 @@ var asteroidHalfExpImage = new Image; asteroidHalfExpImage.src = 'images/Asteroi
 var asteroidExpImage = new Image; asteroidExpImage.src = 'images/AsteroidExplode.png';
 var asteroid = [asteroidImage,asteroidHalfExpImage,asteroidExpImage];
 var resourceImage = new Image; resourceImage.src = 'images/Resource.png';
+var missileImage = new Image; missileImage.src = 'images/RocketBlue.png';
 var shieldImage = new Image; shieldImage.src = 'images/ShieldIcon.png';
 var healthImage = new Image; healthImage.src = 'images/HealthIcon.png';
 var fuelImage = new Image; fuelImage.src = 'images/FuelIcon.png';
@@ -77,7 +79,7 @@ var audioHeal = new Audio('sound/heal.mp3');
 var audioFuel = new Audio('sound/fuel.mp3');
 
 //Utilities
-var usedKeys = [37, 38, 39, 40];
+var usedKeys = [37, 38, 39, 40, 32];
 var KEY_CODES = {
   LEFT: 37,
   UP: 38,
@@ -222,7 +224,7 @@ function loadShop() {
 }
 
 function updateDisplayedShopItems() {
-	console.log('Shop items refreshed');
+	//console.log('Shop items refreshed');
 	if (player.starterShip) {
 		$("#shop-ship-upgrade").removeClass('hidden');
 		$("#shop-hold-upgrade").addClass('hidden');
@@ -239,8 +241,7 @@ function updateDisplayedShopItems() {
 function refillFuel() {
 	socket.emit('refillfuel', true);
 	socket.on('refillfuel', function(response){
-		if (response.answer == true) {
-			if (!soundMuted) audioMoney.play();
+		if (response == true) {
 			if (!soundMuted) audioFuel.play();
 		} else {
 			if (!soundMuted) audioError.play();
@@ -252,8 +253,7 @@ function refillFuel() {
 function refillHealth() {
 	socket.emit('refillhealth', true);
 	socket.on('refillhealth', function(response){
-		if (response.answer == true) {
-			if (!soundMuted) audioMoney.play();
+		if (response == true) {
 			if (!soundMuted) audioHeal.play();
 		} else {
 			if (!soundMuted) audioError.play();
@@ -265,8 +265,7 @@ function refillHealth() {
 function upgradeShield() {
 	socket.emit('upgradeshield', true);
 	socket.on('upgradeshield', function(response){
-		if (response.answer == true) {
-			if (!soundMuted) audioMoney.play();
+		if (response == true) {
 			if (!soundMuted) audioUpgrade.play();
 		} else {
 			if (!soundMuted) audioError.play();
@@ -278,10 +277,9 @@ function upgradeShield() {
 function upgradeShip() {
 	socket.emit('upgradeship', true);
 	socket.on('upgradeship', function(response){
-		if (response.answer == true) {
+		if (response == true) {
 			player.starterShip = false;
 			console.log("money sound played");
-			if (!soundMuted) audioMoney.play();
 			if (!soundMuted) audioUpgrade.play();
 		} else {
 			console.log("error sound played");
@@ -294,8 +292,7 @@ function upgradeShip() {
 function upgradeHold() {
 	socket.emit('upgradehold', true);
 	socket.on('upgradehold', function(response){
-		if (response.answer == true) {
-			if (!soundMuted) audioMoney.play();
+		if (response == true) {
 			if (!soundMuted) audioUpgrade.play();
 		} else {
 			if (!soundMuted) audioError.play();
@@ -307,8 +304,19 @@ function upgradeHold() {
 function upgradeWeapon() {
 	socket.emit('upgradeweapon', true);
 	socket.on('upgradeweapon', function(response){
-		if (response.answer == true) {
-			if (!soundMuted) audioMoney.play();
+		if (response == true) {
+			if (!soundMuted) audioUpgrade.play();
+		} else {
+			if (!soundMuted) audioError.play();
+		}
+		updateDisplayedShopItems();
+    });
+}
+
+function upgradeEngine() {
+	socket.emit('upgradeengine', true);
+	socket.on('upgradeengine', function(response){
+		if (response == true) {
 			if (!soundMuted) audioUpgrade.play();
 		} else {
 			if (!soundMuted) audioError.play();
@@ -318,6 +326,7 @@ function upgradeWeapon() {
 }
 
 function updateCanvasSize() {
+	canvas.height = $(window).height();
 	canvas.height = $(window).height();
 	canvas.width = $(window).width();
 	canvasSize.height = canvas.height;
@@ -344,6 +353,7 @@ function registerSocketHooks() {
 		players = obj.players;
 		asteroids = obj.asteroids;
 		resources = obj.resources;
+		missiles = obj.missiles;
 		scores = obj.scores;
 	})
 	socket.on('ping', function(p){
@@ -469,11 +479,25 @@ function drawObjects() {
 	}
 	for (var i = 0; i < asteroids.length; i++) {
 		var coords = getLocalCoords(asteroids[i].x, asteroids[i].y);
+		ctx.save();
+	    ctx.translate(coords.x,coords.y);
+	    ctx.rotate((asteroids[i].angle+90)*TO_RADIANS);
 		if (asteroids[i].timeOfDeath == null) {
-			ctx.drawImage(asteroid[0], coords.x-(asteroids[i].width/2), coords.y-(asteroids[i].height/2), asteroids[i].width, asteroids[i].height);
+			ctx.drawImage(asteroid[0], -(asteroids[i].width/2), -(asteroids[i].height/2), asteroids[i].width, asteroids[i].height);
+			//ctx.drawImage(asteroid[0], coords.x-(asteroids[i].width/2), coords.y-(asteroids[i].height/2), asteroids[i].width, asteroids[i].height);
 		}else {
-			ctx.drawImage(asteroid[1+Math.min(1,Math.floor(asteroids[i].timeSinceDeath/250))], coords.x-(asteroids[i].width/2), coords.y-(asteroids[i].height/2), asteroids[i].width, asteroids[i].height);
+			ctx.drawImage(asteroid[1+Math.min(1,Math.floor(asteroids[i].timeSinceDeath/250))], -(asteroids[i].width/2), -(asteroids[i].height/2), asteroids[i].width, asteroids[i].height);
+			//ctx.drawImage(asteroid[1+Math.min(1,Math.floor(asteroids[i].timeSinceDeath/250))], coords.x-(asteroids[i].width/2), coords.y-(asteroids[i].height/2), asteroids[i].width, asteroids[i].height);
 		}
+		ctx.restore();
+	}
+	for (var i = 0; i < missiles.length; i++) {
+		var coords = getLocalCoords(missiles[i].x, missiles[i].y);
+		ctx.save();
+	    ctx.translate(coords.x,coords.y);
+	    ctx.rotate((missiles[i].angle+90)*TO_RADIANS);
+		ctx.drawImage(missileImage, -5, -12, 10, 25);
+	    ctx.restore();
 	}
 }
 
@@ -506,9 +530,8 @@ function drawPlayers() {
     ctx.translate(canvas.width/2,canvas.height/2);
     ctx.rotate((player.angle+90)*TO_RADIANS);
 	if (player.starterShip) {
-		ctx.drawImage(spaceship[player.state], -32, -32, 64, 64);
+		ctx.drawImage(spaceship[state], -32, -32, 64, 64);
 	} else {
-		console.log(player.engineLevel)
 		ctx.drawImage(shipCockpit, -56, -48, 112, 96);
 		ctx.drawImage(shipStorage[player.holdLevel], -56, -48, 112, 96);
 		ctx.drawImage(shipWeapons[player.weaponLevel], -56, -48, 112, 96);
@@ -528,6 +551,7 @@ function updateCanvas() {
 	acceleratePlayer();
 	checkForCollosions(player,asteroids);
     checkForCollosions(player,resources);
+    checkForCollosions(player,missiles);
 	drawObjects();
 	drawPlayers();
 	drawUI();
