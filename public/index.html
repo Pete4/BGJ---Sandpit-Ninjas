@@ -36,21 +36,98 @@
 			
 			<table>
 				<tr>
-					<td><img class="grow shop-buy" src="images/FuelIcon.png" onclick="refillFuel()"></img></td>
-					<td><img class="small-margin-right" src="images/EuroPink.png"></img><img class="small-margin-right" src="images/2Blue.png"></img><img src="images/0Pink.png"></img></td>
+					<td>
+						<div class="grow" onclick="refillFuel()">
+							<img class="shop-buy" src="images/FuelIcon.png"></img>
+						</div>
+					</td>
+					<td>
+						<img class="small-margin-right" src="images/EuroPink.png"></img>
+						<img class="small-margin-right" src="images/2Blue.png"></img>
+						<img src="images/0Pink.png"></img>
+					</td>
 				</tr>
 				<tr>
-					<td><img class="grow shop-buy" src="images/HealIcon.png" onclick="refillHealth()"></img></td>
-					<td><img class="small-margin-right" src="images/EuroBlue.png"></img><img class="small-margin-right" src="images/2Pink.png"></img><img src="images/0Blue.png"></img></td>
+					<td>
+						<div class="grow" onclick="refillHealth()">
+							<img class="shop-buy" src="images/HealIcon.png"></img>
+						</div>
+					</td>
+					<td>
+						<img class="small-margin-right" src="images/EuroBlue.png"></img>
+						<img class="small-margin-right" src="images/2Pink.png"></img>
+						<img src="images/0Blue.png"></img>
+					</td>
 				</tr>
 				<tr><td colspan=2><hr></td></tr>
 				<tr>
-					<td><img class="grow shop-buy" src="images/ShieldIcon.png" onclick="upgradeShield()"></img></td>
-					<td><img class="small-margin-right" src="images/EuroPink.png"></img><img class="small-margin-right" src="images/5Blue.png"></img><img src="images/0Pink.png"></img></td>
+					<td>
+						<div class="grow" onclick="upgradeShield()">
+							<img class="shop-buy medium-margin-right" src="images/UpgradeIcon.png"></img>
+							<img class="shop-buy" src="images/ShieldIcon.png"></img>
+						</div>
+					</td>
+					<td>
+						<img class="small-margin-right" src="images/EuroPink.png"></img>
+						<img class="small-margin-right" src="images/5Blue.png"></img>
+						<img src="images/0Pink.png"></img>
+					</td>
 				</tr>
-				<tr>
-					<td><img class="grow shop-buy" src="images/HoldIcon.png" onclick="upgradeHold()"></img></td>
-					<td><img class="small-margin-right" src="images/EuroBlue.png"></img><img class="small-margin-right" src="images/1Pink.png"></img><img class="small-margin-right" src="images/0Blue.png"></img><img src="images/0Pink.png"></img></td>
+				<tr id="shop-ship-upgrade">
+					<td>
+						<div class="grow" onclick="upgradeShip()">
+							<img class="shop-buy medium-margin-right" src="images/UpgradeIcon.png"></img>
+							<img class="shop-buy" src="images/ShipIcon.png"></img>
+						</div>
+					</td>
+					<td>
+						<img class="small-margin-right" src="images/EuroBlue.png"></img>
+						<img class="small-margin-right" src="images/1Pink.png"></img>
+						<img class="small-margin-right" src="images/0Blue.png"></img>
+						<img src="images/0Pink.png"></img>
+					</td>
+				</tr>
+				<tr id="shop-hold-upgrade">
+					<td>
+						<div class="grow" onclick="upgradeHold()">
+							<img class="shop-buy medium-margin-right" src="images/UpgradeIcon.png"></img>
+							<img class="shop-buy" src="images/HoldIcon.png"></img>
+						</div>
+					</td>
+					<td>
+						<img class="small-margin-right" src="images/EuroBlue.png"></img>
+						<img class="small-margin-right" src="images/1Pink.png"></img>
+						<img class="small-margin-right" src="images/0Blue.png"></img>
+						<img src="images/0Pink.png"></img>
+					</td>
+				</tr>
+				<tr id="shop-weapon-upgrade">
+					<td>
+						<div class="grow" onclick="upgradeWeapon()">
+							<img class="shop-buy medium-margin-right" src="images/UpgradeIcon.png"></img>
+							<img class="shop-buy" src="images/WeaponIcon.png"></img>
+						</div>
+					</td>
+					<td>
+						<img class="small-margin-right" src="images/EuroPink.png"></img>
+						<img class="small-margin-right" src="images/1Blue.png"></img>
+						<img class="small-margin-right" src="images/0Pink.png"></img>
+						<img src="images/0Blue.png"></img>
+					</td>
+				</tr>
+				<tr id="shop-engine-upgrade">
+					<td>
+						<div class="grow" onclick="upgradeEngine()">
+							<img class="shop-buy medium-margin-right" src="images/UpgradeIcon.png"></img>
+							<img class="shop-buy" src="images/EngineIcon.png"></img>
+						</div>
+					</td>
+					<td>
+						<img class="small-margin-right" src="images/EuroBlue.png"></img>
+						<img class="small-margin-right" src="images/1Pink.png"></img>
+						<img class="small-margin-right" src="images/0Blue.png"></img>
+						<img src="images/0Pink.png"></img>
+					</td>
 				</tr>
 			</table>
 		</div>

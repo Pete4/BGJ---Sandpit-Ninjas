@@ -141,11 +141,30 @@ function loadOverlay(died) {
 
 function loadShop() {
 	shopOpen = true;
+	updateDisplayedShopItems();
+	if (player.junk) {
+		audioMoney.play();
+	}
 	$('#shop-popup').removeClass('hidden');
 	$('#shop-popup').popup({
 		transition: 'all 0.3s',
 		autoopen: true
 	});
+}
+
+function updateDisplayedShopItems() {
+	console.log('Shop items refreshed');
+	if (player.starterShip) {
+		$("#shop-ship-upgrade").removeClass('hidden');
+		$("#shop-hold-upgrade").addClass('hidden');
+		$("#shop-weapon-upgrade").addClass('hidden');
+		$("#shop-engine-upgrade").addClass('hidden');
+	} else {
+		$("#shop-ship-upgrade").addClass('hidden');
+		$("#shop-hold-upgrade").removeClass('hidden');
+		$("#shop-weapon-upgrade").removeClass('hidden');
+		$("#shop-engine-upgrade").removeClass('hidden');
+	}
 }
 
 function refillFuel() {
@@ -156,6 +175,7 @@ function refillFuel() {
 		} else {
 			audioError.play();
 		}
+		updateDisplayedShopItems();
     });
 }
 
@@ -167,6 +187,7 @@ function refillHealth() {
 		} else {
 			audioError.play();
 		}
+		updateDisplayedShopItems();
     });
 }
 
@@ -178,6 +199,7 @@ function upgradeShield() {
 		} else {
 			audioError.play();
 		}
+		updateDisplayedShopItems();
     });
 }
 
@@ -185,10 +207,12 @@ function upgradeShip() {
 	socket.emit('upgradeship', true);
 	socket.on('upgradeship', function(response){
 		if (response.answer == true) {
+			player.starterShip = false;
 			audioMoney.play();
 		} else {
 			audioError.play();
 		}
+		updateDisplayedShopItems();
     });
 }
 
@@ -200,6 +224,7 @@ function upgradeHold() {
 		} else {
 			audioError.play();
 		}
+		updateDisplayedShopItems();
     });
 }
 
