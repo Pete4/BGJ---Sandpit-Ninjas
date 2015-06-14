@@ -424,10 +424,12 @@ function checkForCollosions(p,objects) {
     var o = objects[i];
     var xDiff = p.x - o.x;
     var yDiff = p.y - o.y;
+    if (o.type == 'standard') console.log('checking res')
     var collDist = (o.width/2)*0.85 + (p.width/2)*0.85;
     if (o.health > 0 && xDiff*xDiff + yDiff*yDiff < collDist*collDist) {
       // Collision has occurred!
       if (o.type == 'standard') {
+        console.log('JUNK!')
         if (player.starterShip) var junkCapacity = junkCapacities[STARTER_SHIP];
         else var junkCapacity = junkCapacities[player.holdLevel+1];
         if (junkCapacity > p.junk) {

@@ -375,23 +375,29 @@ function acceleratePlayer() {
 	var delta = (Date.now()-lastMovedTime)/1000.0;
 	if (Date.now() - p.lastCollisionTime > 500) {
 		if (p.keyState[KEY_CODES.LEFT]) {
-			p.fuel -= delta;
-			playShipSoundEffect(p);
-			state = 1;
-			p.angle = (p.angle - p.rotationSpeed*delta) % 360;
-			if (p.angle < 0) p.angle += 360;
+			if (p.fuel >= delta) {
+				p.fuel -= delta;
+				playShipSoundEffect(p);
+				state = 1;
+				p.angle = (p.angle - p.rotationSpeed*delta) % 360;
+				if (p.angle < 0) p.angle += 360;
+			}
 		} else if (p.keyState[KEY_CODES.RIGHT]) {
-			p.fuel -= delta;
-			playShipSoundEffect(p);
-			state = 2;
-			p.angle = (p.angle + p.rotationSpeed*delta) % 360;
-			if (p.angle < 0) p.angle += 360;
+			if (p.fuel >= delta) {
+				p.fuel -= delta;
+				playShipSoundEffect(p);
+				state = 2;
+				p.angle = (p.angle + p.rotationSpeed*delta) % 360;
+				if (p.angle < 0) p.angle += 360;
+			}
 		} else if (p.keyState[KEY_CODES.UP]) {
-			p.speedX += p.accelerationX*delta*Math.cos(TO_RADIANS*p.angle);
-			p.speedY += p.accelerationY*delta*Math.sin(TO_RADIANS*p.angle);
-			p.fuel -= delta;
-			playShipSoundEffect(p);
-			state = 3;
+			if (p.fuel >= delta) {
+				p.speedX += p.accelerationX*delta*Math.cos(TO_RADIANS*p.angle);
+				p.speedY += p.accelerationY*delta*Math.sin(TO_RADIANS*p.angle);
+				p.fuel -= delta;
+				playShipSoundEffect(p);
+				state = 3;
+			}
 		} else {
 			if (state != 0) {
 				stopShipSoundEffects();
@@ -406,35 +412,41 @@ function acceleratePlayer() {
 }
 
 function checkForCollosions(p,objects) {
-	for (var i = 0; i < objects.length; i++) {
-		var o = objects[i];
-		var xDiff = p.x - o.x;
-		var yDiff = p.y - o.y;
-		var collDist = (o.width/2)*0.85 + (p.width/2)*0.85;
-		if (o.health > 0 && xDiff*xDiff + yDiff*yDiff < collDist*collDist) {
-			// Collision has occurred!
-			if (o.type == 'standard') {
-				if (p.junkCapacity > p.junk) {
-					console.log('Junk picked up');
-					if (!soundMuted) audioCollectJunk.play();
-					o.health -= 100;
-					p.junk += 1;
-				} else {
-					if (!soundMuted) audioError.play();
-				}
-			} else if (o.type == 'asteroid') {
-				if (!soundMuted) audioCrash.play();
-				o.health -= 100;
-				p.lastCollisionTime = Date.now();
-				if (p.shield >= 20) p.shield -= 20;
-				else if (p.shield == 0) p.health -= 20;
-				else {
-					p.health -= (20-p.shield);
-					p.shield = 0;
-				}
-			}
-		}
-	}
+  for (var i = 0; i < objects.length; i++) {
+    var o = objects[i];
+    var xDiff = p.x - o.x;
+    var yDiff = p.y - o.y;
+    var collDist = (o.width/2)*0.85 + (p.width/2)*0.85;
+    if (o.health > 0 && xDiff*xDiff + yDiff*yDiff < collDist*collDist) {
+      // Collision has occurred!
+      if (o.type == 'standard') {
+        if (player.starterShip) var junkCapacity = junkCapacities[STARTER_SHIP];
+        else var junkCapacity = junkCapacities[player.holdLevel+1];
+        if (junkCapacity > p.junk) {
+          o.health -= 20;
+          p.junk += 1;
+        }
+      } else if (o.type == 'asteroid') {
+        o.health -= 20;
+        p.lastCollisionTime = Date.now();
+        if (p.shield >= 20) p.shield -= 20;
+        else if (p.shield == 0) p.health -= 20;
+        else {
+          p.health -= (20-p.shield);
+          p.shield = 0;
+        }
+      } else if (o.type == 'missile' && o.shooterID != p.id) {
+        o.health -= 20;
+        p.lastCollisionTime = Date.now();
+        if (p.shield >= 20) p.shield -= 20;
+        else if (p.shield == 0) p.health -= 20;
+        else {
+          p.health -= (20-p.shield);
+          p.shield = 0;
+        }
+      }
+    }
+  }
 }
 
 function playShipSoundEffect(p) {

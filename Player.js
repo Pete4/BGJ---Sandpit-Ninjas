@@ -7,7 +7,7 @@ function Player(id,name) {
   this.canvasSize = {width:1980,height:1024};
   this.fuel = 60;
   this.junk = 0;
-  this.health = 1000;
+  this.health = 100;
   this.shield = 0;
   this.cash = 5000;
   this.width = 64;
@@ -27,7 +27,7 @@ function Player(id,name) {
   this.holdLevel = 0;
   this.weaponLevel = 0;
   this.engineLevel = 0;
-  this.starterShip = false;
+  this.starterShip = true;
   this.lastCollisionTime = 0;
   this.hitShop = false;
   this.lastFiredTime = 0;
