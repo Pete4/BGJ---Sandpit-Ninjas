@@ -1,6 +1,6 @@
 "use strict"
 //Game objects
-var playerPresets = {x:0, y:0, angle:270, fuel:100, junk:0, health:100 ,keyState:{}, ping:0};
+var playerPresets = {x:0, y:0, angle:270, fuel:100, junk:0, health:100 ,keyState:{}, ping:0, holdLevel:0, weaponLevel:0, engineLevel:0, starterShip:true};
 var player = playerPresets;
 var players = []; //Other players
 var asteroids = [];
@@ -20,40 +20,41 @@ var shipAudioStartTime = Date.now();
 var shopOpen = true;
 
 //Load images
-var spaceshipStationary = new Image();
-var spaceshipLeft = new Image();
-var spaceshipRight = new Image();
-var spaceshipForward = new Image();
-var asteroidImage = new Image;
-var asteroidHalfExpImage = new Image;
-var asteroidExpImage = new Image;
-var resourceImage = new Image;
-var shieldImage = new Image;
-var healthImage = new Image;
-var fuelImage = new Image;
-var junkImage = new Image;
-var blueBarImage = new Image;
-var pinkBarImage = new Image;
-var blueWideBarImage = new Image;
-var spawnImage = new Image;
-spaceshipStationary.src = 'images/FirstSpace_NoFlame.png';
-spaceshipLeft.src = 'images/FirstSpace_RightFlame.png';
-spaceshipRight.src = 'images/FirstSpace_LeftFlame.png';
-spaceshipForward.src = 'images/FirstSpace.png';
+var spaceshipStationary = new Image(); spaceshipStationary.src = 'images/FirstSpace_NoFlame.png';
+var spaceshipLeft = new Image(); spaceshipLeft.src = 'images/FirstSpace_RightFlame.png';
+var spaceshipRight = new Image(); spaceshipRight.src = 'images/FirstSpace_LeftFlame.png';
+var spaceshipForward = new Image(); spaceshipForward.src = 'images/FirstSpace.png';
 var spaceship = [spaceshipStationary,spaceshipLeft,spaceshipRight,spaceshipForward]; // useful format
-asteroidImage.src = 'images/Asteroid.png';
-asteroidHalfExpImage.src = 'images/AsteroidHalfExplode.png';
-asteroidExpImage.src = 'images/AsteroidExplode.png';
+var asteroidImage = new Image; asteroidImage.src = 'images/Asteroid.png';
+var asteroidHalfExpImage = new Image; asteroidHalfExpImage.src = 'images/AsteroidHalfExplode.png';
+var asteroidExpImage = new Image; asteroidExpImage.src = 'images/AsteroidExplode.png';
 var asteroid = [asteroidImage,asteroidHalfExpImage,asteroidExpImage];
-resourceImage.src = 'images/Resource.png';
-shieldImage.src = 'images/ShieldIcon.png';
-healthImage.src = 'images/HealthIcon.png';
-fuelImage.src = 'images/FuelIcon.png';
-junkImage.src = 'images/JunkIcon.png';
-blueBarImage.src = 'images/BlueBar.png';
-pinkBarImage.src = 'images/PinkBar.png';
-blueWideBarImage.src = 'images/BlueWideBar.png';
-spawnImage.src = 'images/spawn.png';
+var resourceImage = new Image; resourceImage.src = 'images/Resource.png';
+var shieldImage = new Image; shieldImage.src = 'images/ShieldIcon.png';
+var healthImage = new Image; healthImage.src = 'images/HealthIcon.png';
+var fuelImage = new Image; fuelImage.src = 'images/FuelIcon.png';
+var junkImage = new Image; junkImage.src = 'images/JunkIcon.png';
+var blueBarImage = new Image; blueBarImage.src = 'images/BlueBar.png';
+var pinkBarImage = new Image; pinkBarImage.src = 'images/PinkBar.png';
+var blueWideBarImage = new Image; blueWideBarImage.src = 'images/BlueWideBar.png';
+var spawnImage = new Image; spawnImage.src = 'images/spawn.png';
+
+//Modular ship images
+var shipCockpit = new Image(); shipCockpit.src = 'images/ShipCockpit.png';
+var shipEngines = [];
+var shipStorage = [];
+var shipWeapons = [];
+for (var i = 1; i <= 3; i++) {
+	var shipEngineOff = new Image(); shipEngineOff.src = 'images/ShipEngine'+i.toString()+'Off.png';
+	var shipEngineLeft = new Image(); shipEngineLeft.src = 'images/ShipEngine'+i.toString()+'Right.png';
+	var shipEngineRight = new Image(); shipEngineRight.src = 'images/ShipEngine'+i.toString()+'Left.png';
+	var shipEngineBoth = new Image(); shipEngineBoth.src = 'images/ShipEngine'+i.toString()+'Both.png';
+	shipEngines.push([shipEngineOff,shipEngineLeft,shipEngineRight,shipEngineBoth]);
+	var shipStorageImage = new Image(); shipStorageImage.src = 'images/ShipStorage'+i.toString()+'.png';
+	shipStorage.push(shipStorageImage);
+	var shipWeapon = new Image(); shipWeapon.src = 'images/ShipWeapon'+i.toString()+'.png';
+	shipWeapons.push(shipWeapon);
+}
 
 //Load sound effects
 var audioEngineStart = new Audio('sound/engine_start.mp3');
@@ -179,6 +180,17 @@ function upgradeShield() {
     });
 }
 
+function upgradeShip() {
+	socket.emit('upgradeship', true);
+	socket.on('upgradeship', function(response){
+		if (response.answer == true) {
+			audioMoney.play();
+		} else {
+			audioError.play();
+		}
+    });
+}
+
 function upgradeHold() {
 	socket.emit('upgradehold', true);
 	socket.on('upgradehold', function(response){
@@ -286,14 +298,6 @@ function acceleratePlayer() {
 		} else {
 			state = 0;
 		}
-		if (isNaN(p.speedX)) {
-			console.log('p.speedX')
-			exit()
-		}
-		if (isNaN(p.speedY)) {
-			console.log('p.speedY')
-			exit()
-		}
 		p.x += p.speedX*delta*Math.cos(TO_RADIANS*p.angle);
 		p.y += p.speedY*delta*Math.sin(TO_RADIANS*p.angle);
 		lastMovedTime = Date.now();
@@ -309,7 +313,7 @@ function checkForCollosions(p,objects) {
 		if (o.health > 0 && xDiff*xDiff + yDiff*yDiff < collDist*collDist) {
 			// Collision has occurred!
 			if (o.type == 'standard') {
-				if (p.hullCapacity > p.junk) {
+				if (p.junkCapacity > p.junk) {
 					audioCollectJunk.play();
 					o.health -= 100;
 					p.junk += 1;
@@ -387,7 +391,14 @@ function drawPlayers() {
 			ctx.save();
 			ctx.translate(coords.x,coords.y);
 			ctx.rotate((players[i].angle+90)*TO_RADIANS);
-			ctx.drawImage(spaceship[players[i].state], -32, -32, 64, 64);
+			if (players[i].starterShip) {
+				ctx.drawImage(spaceship[players[i].state], -32, -32, 64, 64);
+			} else {
+				ctx.drawImage(shipCockpit, -56, -48, 112, 96);
+				ctx.drawImage(shipStorage[players[i].holdLevel], -56, -48, 112, 96);
+				ctx.drawImage(shipWeapons[players[i].weaponLevel], -56, -48, 112, 96);
+				ctx.drawImage(shipEngines[players[i].engineLevel][players[i].state], -56, -48, 112, 96);
+			}
 			ctx.restore();
 			ctx.fillStyle = '#fff';
 			ctx.textAlign = 'center';
@@ -400,7 +411,15 @@ function drawPlayers() {
     ctx.save();
     ctx.translate(canvas.width/2,canvas.height/2);
     ctx.rotate((player.angle+90)*TO_RADIANS);
-	ctx.drawImage(spaceship[state], -32, -32, 64, 64);
+	if (player.starterShip) {
+		ctx.drawImage(spaceship[player.state], -32, -32, 64, 64);
+	} else {
+		console.log(player.engineLevel)
+		ctx.drawImage(shipCockpit, -56, -48, 112, 96);
+		ctx.drawImage(shipStorage[player.holdLevel], -56, -48, 112, 96);
+		ctx.drawImage(shipWeapons[player.weaponLevel], -56, -48, 112, 96);
+		ctx.drawImage(shipEngines[player.engineLevel][player.state], -56, -48, 112, 96);
+	}
     ctx.restore();
 	ctx.fillStyle = '#fff';
 	ctx.textAlign = 'center';

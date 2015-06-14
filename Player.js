@@ -5,11 +5,11 @@ function Player(id,name) {
   this.angle = 270;
   this.name = name;
   this.canvasSize = {width:1980,height:1024};
-  this.fuel = 100;
+  this.fuel = 60;
   this.junk = 0;
   this.health = 100;
   this.shield = 0;
-  this.cash = 50;
+  this.cash = 5000;
   this.width = 64;
   this.height = 64;
   this.accelerationX = 20; //fixed
@@ -25,7 +25,11 @@ function Player(id,name) {
   this.keyState = {};
   this.state = 0;
   this.fuelCapacity = 60;
-  this.hullCapacity = 5;
+  this.junkCapacity = 5;
+  this.holdLevel = 0;
+  this.weaponLevel = 0;
+  this.engineLevel = 0;
+  this.starterShip = true;
   this.gunDamage = 10;
   this.lastCollisionTime = 0;
 
@@ -56,8 +60,12 @@ function Player(id,name) {
     keyState: this.keyState,
     state: this.state,
     fuelCapacity: this.fuelCapacity,
-    hullCapacity: this.hullCapacity,
-    gunDamage: this.gunDamage,
+    junkCapacity: this.junkCapacity,
+    weaponLevel: this.weaponLevel,
+    holdLevel: this.holdLevel,
+    engineLevel: this.engineLevel,
+    starterShip: this.starterShip,
+    weaponDamage: this.weaponDamage,
     lastCollisionTime: this.lastCollisionTime
   };
 }

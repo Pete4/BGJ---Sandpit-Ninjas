@@ -54,6 +54,7 @@ var resources = [];
 var scores = [];
 var numAsteroids = 1000;
 var numResources = 200;
+
 var baseRadius = 300;
 var junkPrice = 10;
 var gridSize = 500;
@@ -68,6 +69,14 @@ var KEY_CODES = {
 var TO_RADIANS = Math.PI/180; 
 var mapCurrXLimits = [-3000,3000];
 var mapCurrYLimits = [-3000,3000];
+
+//Prices
+var fuelPrice = 20;
+var healPrice = 20;
+var shieldPrice = 50;
+var holdPrice = 100;
+var weaponPrice = 100;
+var enginePrice = 100;
 
 io.on('connection', function(socket) {
   if (players.length == 0) console.log('A user connected. There is now '+(spectators.length+players.length+1).toString()+' user.');
@@ -130,6 +139,76 @@ io.on('connection', function(socket) {
   socket.on('canvassize', function(canvasSize) {
     if (typeof(player) != 'undefined') {
       player.canvasSize = canvasSize;
+    }
+  });
+  socket.on('refillfuel', function(response){
+    if (player.cash >= fuelPrice && player.fuelCapacity >= 20 + player.fuel) {
+      player.fuel += 20;
+      player.cash -= 20;
+      socket.emit('refillfuel',true);
+    } else {
+      socket.emit('refillfuel',false);
+    }
+  });
+  socket.on('refillhealth', function(response){
+    if (player.cash >= healPrice) {
+      player.health += 20;
+      player.cash -= 20;
+      socket.emit('refillhealth',true);
+    } else {
+      socket.emit('refillhealth',false);
+    }
+  });
+  socket.on('upgradeshield', function(data) {
+    if (player.cash >= shieldPrice) {
+      player.shield += 20;
+      player.cash -= 50;
+      socket.emit('upgradeshield',true);
+    } else {
+      socket.emit('upgradeshield',false);
+    }
+  });
+  socket.on('upgradeship', function(response){
+    if (player.starterShip && player.cash >= holdPrice) {
+      player.starterShip = false;
+      player.junkCapacity += 20;
+      player.fuelCapacity += 20;
+      player.cash -= 100;
+      socket.emit('upgradeship',true);
+    } else {
+      socket.emit('upgradeship',false);
+    }
+  });
+  socket.on('upgradehold', function(response){
+    if (!player.starterShip && player.cash >= holdPrice && player.holdLevel < 2) {
+      player.holdLevel += 1;
+      player.junkCapacity += 20;
+      player.fuelCapacity += 20;
+      player.cash -= 100;
+      socket.emit('upgradehold',true);
+    } else {
+      socket.emit('upgradehold',false);
+    }
+  });
+  socket.on('upgradeweapon', function(response){
+    if (!player.starterShip && player.cash >= weaponPrice && player.weaponLevel < 2) {
+      player.weaponLevel += 1;
+      player.weaponDamage += 100
+      player.cash -= 100;
+      socket.emit('upgradeweapon',true);
+    } else {
+      socket.emit('upgradeweapon',false);
+    }
+  });
+  socket.on('upgradeengine', function(response){
+    if (!player.starterShip && player.cash >= enginePrice && player.engineLevel < 2) {
+      player.engineLevel += 1;
+      player.accelerationX += 10;
+      player.accelerationY += 10;
+      player.cash -= 100;
+      socket.emit('upgradeengine',true);
+    } else {
+      socket.emit('upgradeengine',false);
     }
   });
 });
@@ -267,7 +346,7 @@ function checkForCollosions(p,objects) {
     if (o.health > 0 && xDiff*xDiff + yDiff*yDiff < collDist*collDist) {
       // Collision has occurred!
       if (o.type == 'standard') {
-        if (p.hullCapacity > p.junk) {
+        if (p.junkCapacity > p.junk) {
           o.health -= 100;
           p.junk += 1;
         }
