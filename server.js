@@ -69,8 +69,8 @@ var mapCurrYLimits = [-3000,3000];
 io.on('connection', function(socket) {
   if (players.length == 0) console.log('A user connected. There is now '+(spectators.length+players.length+1).toString()+' user.');
   else console.log('A user connected. There are now '+(spectators.length+players.length+1).toString()+' users.');
-
-  spectators.push()
+  var spectator = new Player(socket.id,'spectator');
+  spectators.push(spectator);
   var player;
 
   socket.on('start', function(name) {
@@ -93,7 +93,7 @@ io.on('connection', function(socket) {
         } else {
           socket.emit('validation response',{answer:true});  
           console.log('player added');
-          spectators.splice(spectators.indexOf(),1);
+          spectators.splice(spectators.indexOf(spectator),1);
           player = new Player(socket.id,name);
           players.push(player);
           socket.emit('player',player);
@@ -294,15 +294,19 @@ function sendUpdates() {
     }
 
     // Send updates
-    socket.emit('player',p);
-    socket.emit('gamedata',objsToSend);
+    if (typeof(socket) != 'undefined') {
+      socket.emit('player',p);
+      socket.emit('gamedata',objsToSend);
+    }
   }
   for (var i = 0; i < spectators.length; i++) {
+    //console.log('spec')
     var s = spectators[i];
     var socket = io.sockets.connected[s.id];
     var objsToSend = calculateRequiredObjects(s,gridPlayers,gridAsteroids,gridResources);
+    //console.log(objsToSend)
     if (typeof(socket) != 'undefined') {
-      socket.emit('gamedata',objsToSend.asteroids);
+      socket.emit('gamedata',objsToSend);
     }
   }
   // Check for destroyed asteroids
