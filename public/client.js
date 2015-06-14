@@ -1,6 +1,6 @@
 "use strict"
 //Game objects
-var playerPresets = {angle:270, fuel:100, junk:0, health:100 ,keyState:{}, ping:0};
+var playerPresets = {x:0, y:0, angle:270, fuel:100, junk:0, health:100 ,keyState:{}, ping:0};
 var player = playerPresets;
 var players = []; //Other players
 var asteroids = [];
@@ -382,10 +382,9 @@ function updateCanvas() {
 	drawUI();
 	
 	//Check if player is within spawn
-	
 	if (((player.x*player.x) + (player.y*player.y)) < 300*300) {
 		if (!shopOpen) {
-		loadShop();
+			loadShop();
 		}
 	} else {
 		shopOpen = false;
