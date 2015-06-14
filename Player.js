@@ -4,6 +4,8 @@ function Player(id,name) {
   this.y = -1;
   this.angle = 270;
   this.name = name;
+  this.score = 0;
+  this.currentDistance = 0;
   this.canvasSize = {width:1980,height:1024};
   this.fuel = 60;
   this.junk = 0;
@@ -16,8 +18,6 @@ function Player(id,name) {
   this.accelerationY = 20; //fixed
   this.speedX = 0;
   this.speedY = 0;
-  this.speedMax = 100; // px/sec
-  this.forwardSpeed = 100; // px/sec
   this.rotationSpeed = 160; // deg/sec
   this.lastMovedTime = Date.now();
   this.ping = 0;
@@ -38,6 +38,8 @@ function Player(id,name) {
     y: this.y,
     angle: this.angle,
     name: this.name,
+    score: this.score,
+    currentDistance: this.currentDistance,
     canvasSize: this.canvasSize,
     fuel: this.fuel,
     junk: this.junk,
@@ -50,8 +52,6 @@ function Player(id,name) {
     accelerationY: this.accelerationY,
     speedX: this.speedX,
     speedY: this.speedY,
-    speedMax: this.speedMax,
-    forwardSpeed: this.forwardSpeed,
     rotationSpeed: this.rotationSpeed,
     lastMovedTime: this.lastMovedTime,
     ping: this.ping,

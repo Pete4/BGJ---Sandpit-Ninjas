@@ -267,12 +267,6 @@ function genAsteroidsAndResources() {
       resources.push(new Resource(genID(),r*Math.cos(angle),r*Math.sin(angle),'standard',i));
     }
   }
-  /*for (var i = 0; i < numAsteroids; i++) {
-    asteroids.push(new Asteroid(genID(),(Math.random()*width)-(width/2),(Math.random()*height)-(height/2),Math.floor(Math.random()*360),i));
-  }*/
-  /*for (var i = 0; i < numResources; i++) {
-    resources.push(new Resource(genID(),(Math.random()*width)-(width/2),(Math.random()*height)-(height/2),'standard',i));
-  }*/
 }
 
 function movePlayers() {
@@ -630,6 +624,8 @@ function fireMissiles() {
     else var fireRate = fireRates[p.weaponLevel+1];
     if (p.keyState[KEY_CODES.SPACE] && Date.now() - p.lastFiredTime > 1000/fireRate) {
       //Create missile
+      var socket = io.sockets.connected[p.id];
+      socket.emit('missile',true);
       var missile = new Missile(genID(),p.x+5*Math.cos(p.angle*TO_RADIANS),p.y+5*Math.sin(p.angle*TO_RADIANS),p.angle,missiles.length,p.id);
       missiles.push(missile);
       p.lastFiredTime = Date.now();
