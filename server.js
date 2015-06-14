@@ -91,7 +91,7 @@ io.on('connection', function(socket) {
         if (nameTaken) {
           socket.emit('validation response',{answer:false,message:'That name is already taken.'});  
         } else {
-          socket.emit('validation response',{answer:true});  
+          socket.emit('validation response',{answer:true});
           console.log('player added');
           spectators.splice(spectators.indexOf(spectator),1);
           player = new Player(socket.id,name);
@@ -233,7 +233,6 @@ function checkForCollosions(p,objects) {
     var collDist = (o.width/2)*0.85 + (p.width/2)*0.85;
     if (o.health > 0 && xDiff*xDiff + yDiff*yDiff < collDist*collDist) {
       // Collision has occurred!
-      
       if (o.type == 'standard') {
         if (p.hullCapacity > p.junk) {
           o.health -= 100;
@@ -268,7 +267,9 @@ function sendUpdates() {
 
   for (var i = 0; i < players.length; i++) {
     var p = players[i];
+    console.log(p.id)
     var socket = io.sockets.connected[p.id];
+    //console.log(p.id)
     
     // Find out what each user should be able to see
     var objsToSend = calculateRequiredObjects(p,gridPlayers,gridAsteroids,gridResources);
@@ -276,8 +277,8 @@ function sendUpdates() {
     checkForCollosions(p,objsToSend.asteroids);
     checkForCollosions(p,objsToSend.resources);
 
-    for (var i = 0; i < objsToSend.asteroids.length; i++) {
-      var ind = objsToSend.asteroids[i].ind;
+    for (var j = 0; j < objsToSend.asteroids.length; j++) {
+      var ind = objsToSend.asteroids[j].ind;
       if (asteroids[ind].health <= 0) {
         if (asteroids[ind].timeOfDeath == null) {
           asteroids[ind].timeOfDeath = Date.now();
@@ -288,8 +289,8 @@ function sendUpdates() {
       }
     }
 
-    for (var i = 0; i < objsToSend.resources.length; i++) {
-      var ind = objsToSend.resources[i].ind;
+    for (var j = 0; j < objsToSend.resources.length; j++) {
+      var ind = objsToSend.resources[j].ind;
       if (resources[ind].health <= 0) deleteResourceList.push(ind);
     }
 
@@ -297,6 +298,8 @@ function sendUpdates() {
     if (typeof(socket) != 'undefined') {
       socket.emit('player',p);
       socket.emit('gamedata',objsToSend);
+    } else {
+      console.log('Warning: Socket undefined.')
     }
   }
   for (var i = 0; i < spectators.length; i++) {
@@ -328,6 +331,9 @@ function checkPlayers() {
 }
 
 function gameLoop() {
+  /*for (var i = 0; i < players.length; i++) {
+    console.log(players[i].id)
+  }*/
   checkPlayers();
   movePlayers();
   sendUpdates();
