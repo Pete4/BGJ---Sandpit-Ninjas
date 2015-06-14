@@ -64,7 +64,8 @@ var KEY_CODES = {
   LEFT: 37,
   UP: 38,
   RIGHT: 39,
-  DOWN: 40
+  DOWN: 40,
+  SPACE: 32
 };
 var TO_RADIANS = Math.PI/180; 
 var mapCurrXLimits = [-3000,3000];
@@ -115,11 +116,11 @@ io.on('connection', function(socket) {
       }
     }
   });
-
   socket.on('keyupdate', function(keyState) {
     if (typeof(player) != 'undefined') {
       player.keyState = keyState;
       player.lastMovedTime = Date.now();
+      if player.keyState
     }
   });
   socket.on('disconnect', function() {

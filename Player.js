@@ -30,7 +30,7 @@ function Player(id,name) {
   this.weaponLevel = 0;
   this.engineLevel = 0;
   this.starterShip = true;
-  this.gunDamage = 10;
+  this.weaponDamage = 10;
   this.lastCollisionTime = 0;
 
   return {
