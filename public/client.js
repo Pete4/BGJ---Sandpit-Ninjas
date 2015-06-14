@@ -10,6 +10,8 @@ var scores = [];
 var canvas = $("#game-canvas")[0];
 var canvasSize = {height:0, width:0}
 var ctx = canvas.getContext("2d");
+var shipCanvas = $("#ship-design-canvas")[0];
+var shipCtx = shipCanvas.getContext("2d");
 var keyState = {};
 var socket;
 var frameDelay = 25;
@@ -27,6 +29,7 @@ var fuelEmpty = true;
 var curDisplayedMessage = "";
 var curDisplayedDuration = 50;
 var junkCapacities = [5,10,20,40];
+var displayShipDesign = false;
 
 //Load images
 var spaceshipStationary = new Image(); spaceshipStationary.src = 'images/FirstSpace_NoFlame.png';
@@ -251,8 +254,18 @@ function loadShop() {
 	$('#shop-popup').removeClass('hidden');
 	$('#shop-popup').popup({
 		transition: 'all 0.3s',
-		autoopen: true
+		autoopen: true,
+		onopen: function() {
+			document.getElementById("ship-design-canvas").style.top = ((canvas.height-$("#shop-popup").outerHeight())/2).toString()+'px';
+			document.getElementById("ship-design-canvas").style.left = (canvas.width/2 + 220).toString()+'px';
+			$("#ship-design-canvas").removeClass('hidden');
+		},
+		onclose: function() {
+			$("#ship-design-canvas").addClass('hidden');
+			displayShipDesign = false;
+		}
 	});
+	displayShipDesign = true;
 }
 
 function updateDisplayedShopItems() {
@@ -486,6 +499,7 @@ function checkForCollosions(p,objects) {
           o.health -= 20;
           p.junk += 1;
         } else {
+		  displayMessage('Junk capacity reached!');
 		  if (!soundMuted) audioError.play();
 		}
       } else if (o.type == 'asteroid') {
@@ -656,7 +670,26 @@ function updateCanvas() {
 		shopOpen = false;
 	}
 
+	if (displayShipDesign) {
+		displayShip();
+	}
+	
 	if (player.health <= 0) loadOverlay(true);
+}
+
+function displayShip() {
+	shipCtx.fillStyle = '#f5f5f5';
+	shipCtx.fillRect(0,0,120,322);
+	var offsetX = 80;
+	var offsetY = 90;
+	if (player.starterShip) {
+		shipCtx.drawImage(spaceship[state], offsetX-32, offsetY-32, 64, 64);
+	} else {
+		shipCtx.drawImage(shipCockpit, offsetX-56, offsetY-48, 112, 96);
+		shipCtx.drawImage(shipStorage[player.holdLevel], offsetX-56, offsetY-48, 112, 96);
+		shipCtx.drawImage(shipWeapons[player.weaponLevel], offsetX-56, offsetY-48, 112, 96);
+		shipCtx.drawImage(shipEngines[player.engineLevel][player.state], offsetX-56, offsetY-48, 112, 96);
+	}
 }
 
 function displayMessage(message) {
@@ -685,7 +718,7 @@ function drawUI() {
 	//Display leaderboard
 	ctx.textAlign = 'middle';
 	ctx.font="bold 18px Arial";
-	ctx.fillText('Current dist: '+Math.floor(player.furthestDistance), canvas.width-160,50);
+	ctx.fillText('Max dist: '+Math.floor(player.furthestDistance), canvas.width-160,50);
 	ctx.textAlign = 'left';
 	ctx.font="bold 25px Arial";
 	ctx.fillText('Leaderboard', canvas.width-235,100);
