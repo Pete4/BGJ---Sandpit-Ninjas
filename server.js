@@ -120,7 +120,6 @@ io.on('connection', function(socket) {
     if (typeof(player) != 'undefined') {
       player.keyState = keyState;
       player.lastMovedTime = Date.now();
-      if player.keyState
     }
   });
   socket.on('disconnect', function() {
