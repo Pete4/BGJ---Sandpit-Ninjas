@@ -5,7 +5,7 @@ function Player(id,name) {
   this.angle = 270;
   this.name = name;
   this.score = 0;
-  this.currentDistance = 0;
+  this.furthestDistance = 0;
   this.canvasSize = {width:1980,height:1024};
   this.fuel = 60;
   this.junk = 0;
@@ -39,7 +39,7 @@ function Player(id,name) {
     angle: this.angle,
     name: this.name,
     score: this.score,
-    currentDistance: this.currentDistance,
+    furthestDistance: this.furthestDistance,
     canvasSize: this.canvasSize,
     fuel: this.fuel,
     junk: this.junk,

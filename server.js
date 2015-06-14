@@ -58,7 +58,19 @@ var scores = [];
 var healthLimit = 100;
 var shieldLimit = 200;
 var numResources = 200;
-var asteroidBelts = [[500,1000,0.00002,0.00001,0,360],[1000,1100,0.0004,0.00001,0,360],[1150,2000,0.00006,0.00006,0,360],[2200,3000,0.0001,0.0001,0,360]];
+var asteroidBelts = [
+  [ 500,1000 ,0.00002,0.00001,0,360],
+  [1000,1100 ,0.0004 ,0.     ,0,360], /* Thick belt */
+  [1100,2000 ,0.00006,0.00006,0,360],
+  [2000,2100 ,0.0004 ,0      ,0,360], /* Thick belt */
+  [2100,3000 ,0.0001 ,0.0001 ,0,360],
+  [3000,3100 ,0.0004 ,0      ,0,360], /* Thick belt */
+  [3100,4000 ,0.0002 ,0.0004 ,0,360]];
+/*,
+  [4000,4100 ,0.0004 ,0      ,0,360],
+  [4100,9500 ,0.0003 ,0.0004 ,0,360],
+  [9500,10000,0.0004 ,0      ,0,360],
+];*/
 var baseRadius = 300;
 var baseShieldRadius = 400
 var junkPrice = 10;
@@ -68,7 +80,7 @@ var frameDelay = 40;
 var missileSpeed = 100;
 var fireRates = [0,1,2,3];
 var fuelCapacities = [60,120,240,480];
-var junkCapacities = [5,10,20,40];
+var junkCapacities = [5,10,40,80];
 var weaponDamage = [0,20,40,60]
 var STARTER_SHIP = 0;
 var KEY_CODES = {
@@ -79,8 +91,8 @@ var KEY_CODES = {
   SPACE: 32
 };
 var TO_RADIANS = Math.PI/180; 
-var mapCurrXLimits = [-3000,3000];
-var mapCurrYLimits = [-3000,3000];
+var mapCurrXLimits = [-10000,10000];
+var mapCurrYLimits = [-10000,10000];
 
 //Prices
 var fuelPrice = 20;
@@ -498,6 +510,9 @@ function sendUpdates() {
   for (var i = 0; i < players.length; i++) {
     var p = players[i];
     var socket = io.sockets.connected[p.id];
+
+    var dist = Math.sqrt(p.x*p.x + p.y*p.y);
+    if (dist > p.furthestDistance) p.furthestDistance = dist;
     
     // Find out what each user should be able to see
     var objsToSend = calculateRequiredObjects(p,gridPlayers,gridAsteroids,gridResources,gridMissiles);
@@ -578,11 +593,11 @@ function checkPlayers() {
 
 function getScores() {
   if (players.length != 0) {
-    scores = [[players[0].name,players[0].cash]];
+    scores = [[players[0].name,players[0].score]];
     for (var i = 1; i < players.length; i++) {
       for (var j = 0; j < scores.length + 1; j++) {
-        if (j == scores.length || players[i].cash > scores[j][1]) {
-          scores.splice(j,0,[players[i].name,players[i].cash]);
+        if (j == scores.length || players[i].score > scores[j][1]) {
+          scores.splice(j,0,[players[i].name,players[i].score]);
           break;
         }
       }
@@ -594,7 +609,11 @@ function getScores() {
 function clearJunk() {
   for (var i = 0; i < players.length; i++) {
     var p = players[i];
-    if (p.x*p.x + p.y*p.y < baseRadius*baseRadius) {
+    if (p.x*p.x + p.y*p.y < baseShieldRadius*baseShieldRadius) {
+      if (p.furthestDistance > p.score) {
+        p.score = Math.floor(p.furthestDistance);
+      }
+      p.furthestDistance = 0;
       p.cash += p.junk*junkPrice;
       p.junk = 0;
       if (!p.hitShop) {
@@ -625,7 +644,7 @@ function fireMissiles() {
     if (p.keyState[KEY_CODES.SPACE] && Date.now() - p.lastFiredTime > 1000/fireRate) {
       //Create missile
       var socket = io.sockets.connected[p.id];
-      socket.emit('missile',true);
+      socket.emit('newmissile',true);
       var missile = new Missile(genID(),p.x+5*Math.cos(p.angle*TO_RADIANS),p.y+5*Math.sin(p.angle*TO_RADIANS),p.angle,missiles.length,p.id);
       missiles.push(missile);
       p.lastFiredTime = Date.now();
