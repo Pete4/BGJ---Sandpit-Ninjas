@@ -12,8 +12,8 @@ function Player(id,name) {
   this.cash = 50;
   this.width = 64;
   this.height = 64;
-  this.accelerationX = 10; //fixed
-  this.accelerationY = 10; //fixed
+  this.accelerationX = 20; //fixed
+  this.accelerationY = 20; //fixed
   this.speedX = 0;
   this.speedY = 0;
   this.speedMax = 100; // px/sec

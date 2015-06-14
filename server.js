@@ -208,14 +208,6 @@ function acceleratePlayers() {
       } else {
         p.state = 0;
       }
-      if (isNaN(p.speedX)) {
-        console.log('p.speedX')
-        exit()
-      }
-      if (isNaN(p.speedY)) {
-        console.log('p.speedY')
-        exit()
-      }
       p.x += p.speedX*delta;//*Math.cos(TO_RADIANS*p.angle);
       p.y += p.speedY*delta;//*Math.sin(TO_RADIANS*p.angle);
       p.lastMovedTime = Date.now();
@@ -234,10 +226,7 @@ function sortObjectsIntoGrids(objects) {
   }
   var numNegXGrids = -Math.min(mapCurrXLimits[0]/gridSize,0);
   var numNegYGrids = -Math.min(mapCurrYLimits[0]/gridSize,0);
-  //console.log(objects);
   for (var i = 0; i < objects.length; i++) {
-    //console.log(Math.floor(objects[i].x/gridSize)+numNegXGrids)
-    //console.log(objects[i].x)
     grids[Math.floor(objects[i].x/gridSize)+numNegXGrids][Math.floor(objects[i].y/gridSize)+numNegYGrids].push(objects[i]);
   }
   return grids;
@@ -388,7 +377,7 @@ function getScores() {
 }
 
 function clearJunk() {
-  for (var i = 1; i < players.length; i++) {
+  for (var i = 0; i < players.length; i++) {
     var p = players[i];
     if (p.x*p.x + p.y*p.y < baseRadius*baseRadius) {
       p.cash += p.junk*junkPrice;
