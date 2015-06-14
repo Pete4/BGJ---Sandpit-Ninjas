@@ -20,7 +20,6 @@ function Player(id,name) {
   this.keyState = {};
   this.state = 0;
   this.fuelCapacity = 100;
-  this.hullCapacity = 10;
   this.hullCapacity = 5;
   this.gunDamage = 10;
   this.lastCollisionTime = 0;
