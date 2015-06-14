@@ -58,14 +58,15 @@ var scores = [];
 var healthLimit = 100;
 var shieldLimit = 200;
 var numResources = 200;
-var asteroidBelts = [[400,1000,0.00002,0.00001,0,360],[1000,1100,0.0004,0.00001,0,360],[1150,2000,0.00006,0.00006,0,360],[2200,3000,0.0001,0.0001,0,360]];
+var asteroidBelts = [[500,1000,0.00002,0.00001,0,360],[1000,1100,0.0004,0.00001,0,360],[1150,2000,0.00006,0.00006,0,360],[2200,3000,0.0001,0.0001,0,360]];
 var baseRadius = 300;
+var baseShieldRadius = 400
 var junkPrice = 10;
 var gridSize = 500;
 var idCounter = 0;
 var frameDelay = 40;
 var missileSpeed = 100;
-var fireRates = [0,1,2,4];
+var fireRates = [0,1,2,3];
 var fuelCapacities = [60,120,240,480];
 var junkCapacities = [5,10,20,40];
 var weaponDamage = [0,20,40,60]
@@ -131,7 +132,7 @@ io.on('connection', function(socket) {
         }
       }
     }
-  });
+  }); 
   socket.on('keyupdate', function(keyState) {
     if (typeof(player) != 'undefined') {
       player.keyState = keyState;
@@ -158,7 +159,7 @@ io.on('connection', function(socket) {
     }
   });
   socket.on('refillfuel', function(response){
-    var playerIsNearShop = (player.x*player.x + player.y*player.y< (baseRadius+10)*(baseRadius+10))
+    var playerIsNearShop = (player.x*player.x + player.y*player.y < baseShieldRadius*baseShieldRadius)
     if (player.starterShip) var fuelCapacity = fuelCapacities[STARTER_SHIP];
     else var fuelCapacity = fuelCapacities[player.holdLevel+1];
     if (player.cash >= fuelPrice && player.fuel < fuelCapacity && playerIsNearShop) {
@@ -170,7 +171,7 @@ io.on('connection', function(socket) {
     }
   });
   socket.on('refillhealth', function(response){
-    var playerIsNearShop = (player.x*player.x + player.y*player.y< (baseRadius+10)*(baseRadius+10))
+    var playerIsNearShop = (player.x*player.x + player.y*player.y < baseShieldRadius*baseShieldRadius)
     if (player.cash >= healPrice && player.health <= healthLimit && playerIsNearShop) {
       player.health = Math.min(player.health+20,healthLimit);
       player.cash -= 20;
@@ -180,8 +181,8 @@ io.on('connection', function(socket) {
     }
   });
   socket.on('upgradeshield', function(data){
-    var playerIsNearShop = (player.x*player.x + player.y*player.y< (baseRadius+10)*(baseRadius+10))
-    if (player.cash >= shieldPrice && playerIsNearShop) {
+    var playerIsNearShop = (player.x*player.x + player.y*player.y < baseShieldRadius*baseShieldRadius)
+    if (player.cash >= shieldPrice && playerIsNearShop && player.shield <= shieldLimit ) {
       player.shield = Math.min(player.shield+20,shieldLimit);
       player.cash -= 50;
       socket.emit('upgradeshield',true);
@@ -190,7 +191,7 @@ io.on('connection', function(socket) {
     }
   });
   socket.on('upgradeship', function(response){
-    var playerIsNearShop = (player.x*player.x + player.y*player.y< (baseRadius+10)*(baseRadius+10))
+    var playerIsNearShop = (player.x*player.x + player.y*player.y < baseShieldRadius*baseShieldRadius)
     if (player.starterShip && player.cash >= holdPrice && playerIsNearShop) {
       player.starterShip = false;
       player.junkCapacity += 20;
@@ -202,7 +203,7 @@ io.on('connection', function(socket) {
     }
   });
   socket.on('upgradehold', function(response){
-    var playerIsNearShop = (player.x*player.x + player.y*player.y< (baseRadius+10)*(baseRadius+10))
+    var playerIsNearShop = (player.x*player.x + player.y*player.y < baseShieldRadius*baseShieldRadius)
     if (!player.starterShip && player.cash >= holdPrice && player.holdLevel < 2 && playerIsNearShop) {
       player.holdLevel += 1;
       player.cash -= 100;
@@ -212,7 +213,7 @@ io.on('connection', function(socket) {
     }
   });
   socket.on('upgradeweapon', function(response){
-    var playerIsNearShop = (player.x*player.x + player.y*player.y< (baseRadius+10)*(baseRadius+10))
+    var playerIsNearShop = (player.x*player.x + player.y*player.y < baseShieldRadius*baseShieldRadius)
     if (!player.starterShip && player.cash >= weaponPrice && player.weaponLevel < 2 && playerIsNearShop) {
       player.weaponLevel += 1;
       player.weaponDamage += 100
@@ -223,7 +224,7 @@ io.on('connection', function(socket) {
     }
   });
   socket.on('upgradeengine', function(response){
-    var playerIsNearShop = (player.x*player.x + player.y*player.y< (baseRadius+10)*(baseRadius+10))
+    var playerIsNearShop = (player.x*player.x + player.y*player.y < baseShieldRadius*baseShieldRadius)
     if (!player.starterShip && player.cash >= enginePrice && player.engineLevel < 2 && playerIsNearShop) {
       player.engineLevel += 1;
       player.accelerationX += 20;
@@ -263,7 +264,7 @@ function genAsteroidsAndResources() {
     for (var j = 0; j < numResources; j++) {
       var r = Math.random()*(b[1]-b[0])+b[0];
       var angle = Math.floor(Math.random()*360);
-      resources.push(new Resource(genID(),r*Math.cos(angle),r*Math.sin(angle),Math.floor(Math.random()*360),'standard',i));
+      resources.push(new Resource(genID(),r*Math.cos(angle),r*Math.sin(angle),'standard',i));
     }
   }
   /*for (var i = 0; i < numAsteroids; i++) {
@@ -366,13 +367,14 @@ function updateGrids() {
 function moveMissiles() {
   for (var i = 0; i < missiles.length; i++) {
     var m = missiles[i];
-    var delta = (Date.now()-m.lastMovedTime)/1000.0;
-    m.x += missileSpeed*delta*Math.cos(TO_RADIANS*m.angle);
-    m.y += missileSpeed*delta*Math.sin(TO_RADIANS*m.angle);
-    m.lastMovedTime = Date.now();
-    if (m.x < mapCurrXLimits[0] || m.x > mapCurrXLimits[1] || m.y < mapCurrYLimits[0] || m.y > mapCurrYLimits[1]) {
-      missiles.splice(i,1);
-      i--;
+    if (m.health > 0) {
+      var delta = (Date.now()-m.lastMovedTime)/1000.0;
+      m.x += missileSpeed*delta*Math.cos(TO_RADIANS*m.angle);
+      m.y += missileSpeed*delta*Math.sin(TO_RADIANS*m.angle);
+      m.lastMovedTime = Date.now();
+      if (m.x < mapCurrXLimits[0] || m.x > mapCurrXLimits[1] || m.y < mapCurrYLimits[0] || m.y > mapCurrYLimits[1] || m.x*m.x + m.y*m.y < baseShieldRadius*baseShieldRadius) {
+        m.health = 0;
+      }
     }
   }
 }
@@ -424,14 +426,12 @@ function checkForCollosions(p,objects) {
     var o = objects[i];
     var xDiff = p.x - o.x;
     var yDiff = p.y - o.y;
-    if (o.type == 'standard') console.log('checking res')
     var collDist = (o.width/2)*0.85 + (p.width/2)*0.85;
     if (o.health > 0 && xDiff*xDiff + yDiff*yDiff < collDist*collDist) {
       // Collision has occurred!
       if (o.type == 'standard') {
-        console.log('JUNK!')
-        if (player.starterShip) var junkCapacity = junkCapacities[STARTER_SHIP];
-        else var junkCapacity = junkCapacities[player.holdLevel+1];
+        if (p.starterShip) var junkCapacity = junkCapacities[STARTER_SHIP];
+        else var junkCapacity = junkCapacities[p.holdLevel+1];
         if (junkCapacity > p.junk) {
           o.health -= 20;
           p.junk += 1;
@@ -471,7 +471,9 @@ function asteroidMissileCollisions(gridAsteroids,gridMissiles) {
           var collDist = (a.width/2) + (m.width/2);
           if (a.health > 0 && m.health > 0 && xDiff*xDiff + yDiff*yDiff < collDist*collDist) {
             a.health -= 20;
-            m.health -= 20;
+            m.health = 0;
+            m.timeOfDeath = Date.now()-401;
+            m.timeSinceDeath = 401;
           }
         }
       }
@@ -529,7 +531,14 @@ function sendUpdates() {
 
     for (var j = 0; j < objsToSend.missiles.length; j++) {
       var ind = objsToSend.missiles[j].ind;
-      if (missiles[ind].health <= 0) deleteMissilesList.push(ind);
+      if (missiles[ind].health <= 0) {
+        if (missiles[ind].timeOfDeath == null) {
+          missiles[ind].timeOfDeath = Date.now();
+        } else {
+          missiles[ind].timeSinceDeath = Date.now() - missiles[ind].timeOfDeath;
+        }
+        if (missiles[ind].timeSinceDeath > 400) deleteMissilesList.push(ind);
+      }
     }
 
     // Send updates
@@ -607,6 +616,9 @@ function clearJunk() {
 }
 
 function regenObjects() {
+  //var belts = []
+  //for (var i = 0; i < asteroids; i++) {
+  //}
   //run every 10 seconds
   // calculate density of asteroids in each ring, compare to set levels
 }

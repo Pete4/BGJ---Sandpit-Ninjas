@@ -26,6 +26,7 @@ var musicMuted = false;
 var fuelEmpty = true;
 var curDisplayedMessage = "";
 var curDisplayedDuration = 50;
+var junkCapacities = [5,10,20,40];
 
 //Load images
 var spaceshipStationary = new Image(); spaceshipStationary.src = 'images/FirstSpace_NoFlame.png';
@@ -39,6 +40,8 @@ var asteroidExpImage = new Image; asteroidExpImage.src = 'images/AsteroidExplode
 var asteroid = [asteroidImage,asteroidHalfExpImage,asteroidExpImage];
 var resourceImage = new Image; resourceImage.src = 'images/Resource.png';
 var missileImage = new Image; missileImage.src = 'images/RocketBlue.png';
+var missileExpImage = new Image; missileExpImage.src = 'images/AsteroidExplode.png';
+var missile = [missileImage,missileExpImage];
 var shieldImage = new Image; shieldImage.src = 'images/ShieldIcon.png';
 var healthImage = new Image; healthImage.src = 'images/HealthIcon.png';
 var fuelImage = new Image; fuelImage.src = 'images/FuelIcon.png';
@@ -83,6 +86,7 @@ var audioFuel = new Audio('sound/fuel.mp3');
 
 //Utilities
 var usedKeys = [37, 38, 39, 40, 32];
+var STARTER_SHIP = 0;
 var KEY_CODES = {
   LEFT: 37,
   UP: 38,
@@ -439,8 +443,8 @@ function checkForCollosions(p,objects) {
     if (o.health > 0 && xDiff*xDiff + yDiff*yDiff < collDist*collDist) {
       // Collision has occurred!
       if (o.type == 'standard') {
-        if (player.starterShip) var junkCapacity = junkCapacities[STARTER_SHIP];
-        else var junkCapacity = junkCapacities[player.holdLevel+1];
+        if (p.starterShip) var junkCapacity = junkCapacities[STARTER_SHIP];
+        else var junkCapacity = junkCapacities[p.holdLevel+1];
         if (junkCapacity > p.junk) {
           o.health -= 20;
           p.junk += 1;
@@ -531,7 +535,11 @@ function drawObjects() {
 		ctx.save();
 	    ctx.translate(coords.x,coords.y);
 	    ctx.rotate((missiles[i].angle+90)*TO_RADIANS);
-		ctx.drawImage(missileImage, -5, -12, 10, 25);
+	    if (missiles[i].timeOfDeath == null) {
+			ctx.drawImage(missile[0], -5, -12, 10, 25);
+		} else {
+			ctx.drawImage(missile[1], -5, -12, 10, 25);
+		}
 	    ctx.restore();
 	}
 }
