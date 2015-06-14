@@ -642,7 +642,7 @@ function drawUI() {
 	}
 	
 	//Horizontal bar
-	ctx.drawImage(blueWideBarImage, 20, canvas.height-100);
+	ctx.drawImage(blueWideBarImage, 20, canvas.height-96);
 	
 	//Arrow
 	ctx.save();
