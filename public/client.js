@@ -13,12 +13,15 @@ var keyState = {};
 var socket;
 var frameDelay = 25;
 var lastMovedTime = Date.now();
+var musicWaitStartTime = Date.now();
+var musicGameStartTime = Date.now();
 var name = 'Bob';
 var lastCollisionTime = 0;
 var state = 0;
 var shipAudioStartTime = Date.now();
 var shopOpen = true;
 var soundMuted = false;
+var musicMuted = false;
 
 //Load images
 var spaceshipStationary = new Image(); spaceshipStationary.src = 'images/FirstSpace_NoFlame.png';
@@ -65,10 +68,13 @@ var audioEngineOn = new Audio('sound/engine_on.mp3');
 var audioCrash = new Audio('sound/crash.mp3');
 var audioCollectJunk = new Audio('sound/collect_junk.mp3');
 var audioGameOver = new Audio('sound/gameover.mp3');
-var audioMusic_SuperTechno = new Audio('sound/music_spacetechno.mp3');
+var audioMusic_Wait = new Audio('sound/music_spacetechno.mp3');
+var audioMusic_Game = new Audio('sound/music_spaceventure.mp3');
 var audioError = new Audio('sound/error.mp3');
-var audioMoney = new Audio('sound/error.mp3');
+var audioMoney = new Audio('sound/money.mp3');
 var audioUpgrade = new Audio('sound/upgrade.mp3');
+var audioHeal = new Audio('sound/heal.mp3');
+var audioFuel = new Audio('sound/fuel.mp3');
 
 //Utilities
 var usedKeys = [37, 38, 39, 40];
@@ -107,12 +113,49 @@ $(function() {
 	updateCanvasSize();
 	loadOverlay(false);
 	
-	//Start timed canvas updates for UI
 	setInterval(updateCanvas, frameDelay);
+	setInterval(handleMusic, 1655);
 	
-	//audioMusic_SuperTechno.play();
-	//setInterval(playMusic, 26550);
+	playMusic('wait');
 });
+
+function handleMusic() {
+	if (!audioMusic_Wait.paused) {
+		if (Date.now() > musicWaitStartTime + 26400) {
+			stopMusic();
+			musicWaitStartTime = Date.now();
+			audioMusic_Wait.play();
+		}
+	}
+	
+	if (!audioMusic_Game.paused) {
+		if (Date.now() > musicGameStartTime + 52400) {
+			stopMusic();
+			musicGameStartTime = Date.now();
+			audioMusic_Game.play();
+		}
+	}
+}
+
+function playMusic(type) {
+	if (!musicMuted) {
+		stopMusic();
+		if (type == 'wait') {
+			musicWaitStartTime = Date.now();
+			audioMusic_Wait.play();
+		} else if (type == 'game') {
+			musicGameStartTime = Date.now();
+			audioMusic_Game.play();
+		}
+	}
+}
+
+function stopMusic() {
+	audioMusic_Game.pause();
+	audioMusic_Game.currentTime = 0;
+	audioMusic_Wait.pause();
+	audioMusic_Wait.currentTime = 0;
+}
 
 function toggleMute() {
 	if (soundMuted) {
@@ -123,12 +166,24 @@ function toggleMute() {
 	$('.audio-mute').toggleClass('hidden');
 }
 
+function toggleMusicMute() {
+	if (musicMuted) {
+		musicMuted = false;
+		playMusic('game');
+	} else {
+		musicMuted = true;
+		stopMusic();
+	}
+	$('.music-mute').toggleClass('hidden');
+}
+
 function start() {
 	name = $("#start-popup-name")[0].value;
 	socket.emit('start', name);
 	socket.on('validation response', function(response){
 		if (response.answer == true) {
 			$('#start-popup').popup('hide');
+			playMusic('game');
 		} else {
 			$('#game-popup-response').html(response.message);
 		}
@@ -140,7 +195,8 @@ function loadOverlay(died) {
 	if (died){
 		$('#shop-popup').popup('hide');
 		$('#game-popup-response').html("You died!");
-		audioGameOver.play();
+		if (!soundMuted) audioGameOver.play();
+		playMusic('wait');
 	}
 	player = playerPresets;
 	$('#start-popup').removeClass('hidden');
@@ -156,7 +212,7 @@ function loadShop() {
 	shopOpen = true;
 	updateDisplayedShopItems();
 	if (player.junk) {
-		audioMoney.play();
+		if (!soundMuted) audioMoney.play();
 	}
 	$('#shop-popup').removeClass('hidden');
 	$('#shop-popup').popup({
@@ -184,9 +240,10 @@ function refillFuel() {
 	socket.emit('refillfuel', true);
 	socket.on('refillfuel', function(response){
 		if (response.answer == true) {
-			audioMoney.play();
+			if (!soundMuted) audioMoney.play();
+			if (!soundMuted) audioFuel.play();
 		} else {
-			audioError.play();
+			if (!soundMuted) audioError.play();
 		}
 		updateDisplayedShopItems();
     });
@@ -196,9 +253,10 @@ function refillHealth() {
 	socket.emit('refillhealth', true);
 	socket.on('refillhealth', function(response){
 		if (response.answer == true) {
-			audioMoney.play();
+			if (!soundMuted) audioMoney.play();
+			if (!soundMuted) audioHeal.play();
 		} else {
-			audioError.play();
+			if (!soundMuted) audioError.play();
 		}
 		updateDisplayedShopItems();
     });
@@ -208,10 +266,10 @@ function upgradeShield() {
 	socket.emit('upgradeshield', true);
 	socket.on('upgradeshield', function(response){
 		if (response.answer == true) {
-			audioMoney.play();
-			audioUpgrade.play();
+			if (!soundMuted) audioMoney.play();
+			if (!soundMuted) audioUpgrade.play();
 		} else {
-			audioError.play();
+			if (!soundMuted) audioError.play();
 		}
 		updateDisplayedShopItems();
     });
@@ -222,10 +280,12 @@ function upgradeShip() {
 	socket.on('upgradeship', function(response){
 		if (response.answer == true) {
 			player.starterShip = false;
-			audioMoney.play();
-			audioUpgrade.play();
+			console.log("money sound played");
+			if (!soundMuted) audioMoney.play();
+			if (!soundMuted) audioUpgrade.play();
 		} else {
-			audioError.play();
+			console.log("error sound played");
+			if (!soundMuted) audioError.play();
 		}
 		updateDisplayedShopItems();
     });
@@ -235,10 +295,10 @@ function upgradeHold() {
 	socket.emit('upgradehold', true);
 	socket.on('upgradehold', function(response){
 		if (response.answer == true) {
-			audioMoney.play();
-			audioUpgrade.play();
+			if (!soundMuted) audioMoney.play();
+			if (!soundMuted) audioUpgrade.play();
 		} else {
-			audioError.play();
+			if (!soundMuted) audioError.play();
 		}
 		updateDisplayedShopItems();
     });
@@ -248,10 +308,10 @@ function upgradeWeapon() {
 	socket.emit('upgradeweapon', true);
 	socket.on('upgradeweapon', function(response){
 		if (response.answer == true) {
-			audioMoney.play();
-			audioUpgrade.play();
+			if (!soundMuted) audioMoney.play();
+			if (!soundMuted) audioUpgrade.play();
 		} else {
-			audioError.play();
+			if (!soundMuted) audioError.play();
 		}
 		updateDisplayedShopItems();
     });
@@ -300,48 +360,19 @@ function getLocalCoords(x, y) {
 	};
 }
 
-function movePlayer(p) {
-	var p = player;
-	var delta = (Date.now()-lastMovedTime)/1000.0;
-	if (Date.now() - lastCollisionTime > 500) {
-	    if (p.keyState[KEY_CODES.LEFT]) {
-			playShipSoundEffect(p);
-			state = 1;
-			p.angle = (p.angle - p.rotationSpeed*delta) % 360;
-			if (p.angle < 0) p.angle += 360;
-	    } else if (p.keyState[KEY_CODES.RIGHT]) {
-			playShipSoundEffect(p);
-			state = 2;
-			p.angle = (p.angle + p.rotationSpeed*delta) % 360;
-			if (p.angle < 0) p.angle += 360;
-	    } else if (p.keyState[KEY_CODES.UP]) {
-			//console.log(p.state);
-			playShipSoundEffect(p);
-			state = 3;
-			p.x += p.forwardSpeed*delta*Math.cos(TO_RADIANS*p.angle);
-			p.y += p.forwardSpeed*delta*Math.sin(TO_RADIANS*p.angle);
-	    } else {
-			if (state != 0) {
-				stopShipSoundEffects();
-				audioEngineStop.play();
-			}
-			state = 0;
-		}
-	    lastMovedTime = Date.now();
-	}
-}
-
 function acceleratePlayer() {
 	var p = player;
 	var delta = (Date.now()-lastMovedTime)/1000.0;
 	if (Date.now() - p.lastCollisionTime > 500) {
 		if (p.keyState[KEY_CODES.LEFT]) {
 			p.fuel -= delta;
+			playShipSoundEffect(p);
 			state = 1;
 			p.angle = (p.angle - p.rotationSpeed*delta) % 360;
 			if (p.angle < 0) p.angle += 360;
 		} else if (p.keyState[KEY_CODES.RIGHT]) {
 			p.fuel -= delta;
+			playShipSoundEffect(p);
 			state = 2;
 			p.angle = (p.angle + p.rotationSpeed*delta) % 360;
 			if (p.angle < 0) p.angle += 360;
@@ -349,8 +380,13 @@ function acceleratePlayer() {
 			p.speedX += p.accelerationX*delta*Math.cos(TO_RADIANS*p.angle);
 			p.speedY += p.accelerationY*delta*Math.sin(TO_RADIANS*p.angle);
 			p.fuel -= delta;
+			playShipSoundEffect(p);
 			state = 3;
 		} else {
+			if (state != 0) {
+				stopShipSoundEffects();
+				if (!soundMuted) audioEngineStop.play();
+			}
 			state = 0;
 		}
 		p.x += p.speedX*delta*Math.cos(TO_RADIANS*p.angle);
@@ -369,14 +405,15 @@ function checkForCollosions(p,objects) {
 			// Collision has occurred!
 			if (o.type == 'standard') {
 				if (p.junkCapacity > p.junk) {
-					audioCollectJunk.play();
+					console.log('Junk picked up');
+					if (!soundMuted) audioCollectJunk.play();
 					o.health -= 100;
 					p.junk += 1;
 				} else {
-					audioError.play();
+					if (!soundMuted) audioError.play();
 				}
 			} else if (o.type == 'asteroid') {
-				audioCrash.play();
+				if (!soundMuted) audioCrash.play();
 				o.health -= 100;
 				p.lastCollisionTime = Date.now();
 				if (p.shield >= 20) p.shield -= 20;
@@ -391,17 +428,19 @@ function checkForCollosions(p,objects) {
 }
 
 function playShipSoundEffect(p) {
-	if (state == 0) {
-		if (Date.now() > shipAudioStartTime + 1400) {
-			stopShipSoundEffects();
-			audioEngineStart.play();
-			shipAudioStartTime = Date.now();
-		}
-	} else {
-		if (Date.now() > shipAudioStartTime + 1400) {
-			stopShipSoundEffects();
-			audioEngineOn.play();
-			shipAudioStartTime = Date.now();
+	if (!soundMuted) {
+		if (state == 0) {
+			if (Date.now() > shipAudioStartTime + 1400) {
+				stopShipSoundEffects();
+				audioEngineStart.play();
+				shipAudioStartTime = Date.now();
+			}
+		} else {
+			if (Date.now() > shipAudioStartTime + 1400) {
+				stopShipSoundEffects();
+				audioEngineOn.play();
+				shipAudioStartTime = Date.now();
+			}
 		}
 	}
 }
@@ -486,7 +525,6 @@ function updateCanvas() {
 	//Clear canvas
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 	
-	//movePlayer();
 	acceleratePlayer();
 	checkForCollosions(player,asteroids);
     checkForCollosions(player,resources);
@@ -504,12 +542,6 @@ function updateCanvas() {
 	}
 
 	if (player.health <= 0) loadOverlay(true);
-}
-
-function playMusic() {
-	audioMusic_SuperTechno.pause();
-	audioMusic_SuperTechno.currentTime = 0;
-	audioMusic_SuperTechno.play();
 }
 
 function drawUI() {
