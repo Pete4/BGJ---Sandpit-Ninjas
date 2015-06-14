@@ -435,8 +435,8 @@ function acceleratePlayer() {
 				p.fuel -= delta;
 				playShipSoundEffect(p);
 				state = 1;
-				p.angle = (p.angle - p.rotationSpeed*delta) % 360;
-				if (p.angle < 0) p.angle += 360;
+				//p.angle = (p.angle - p.rotationSpeed*delta) % 360;
+				//if (p.angle < 0) p.angle += 360;
 			} else {
 				if (!fuelEmpty) {
 					displayMessage('Out of fuel!');
@@ -449,8 +449,8 @@ function acceleratePlayer() {
 				p.fuel -= delta;
 				playShipSoundEffect(p);
 				state = 2;
-				p.angle = (p.angle + p.rotationSpeed*delta) % 360;
-				if (p.angle < 0) p.angle += 360;
+				//p.angle = (p.angle + p.rotationSpeed*delta) % 360;
+				//if (p.angle < 0) p.angle += 360;
 			} else {
 				if (!fuelEmpty) {
 					displayMessage('Out of fuel!');
@@ -460,8 +460,8 @@ function acceleratePlayer() {
 		} else if (p.keyState[KEY_CODES.UP]) {
 			if (p.fuel >= delta) {
 				fuelEmpty = false;
-				p.speedX += p.accelerationX*delta*Math.cos(TO_RADIANS*p.angle);
-				p.speedY += p.accelerationY*delta*Math.sin(TO_RADIANS*p.angle);
+				//p.speedX += p.accelerationX*delta*Math.cos(TO_RADIANS*p.angle);
+				//p.speedY += p.accelerationY*delta*Math.sin(TO_RADIANS*p.angle);
 				p.fuel -= delta;
 				playShipSoundEffect(p);
 				state = 3;
@@ -478,8 +478,8 @@ function acceleratePlayer() {
 			}
 			state = 0;
 		}
-		p.x += p.speedX*delta*Math.cos(TO_RADIANS*p.angle);
-		p.y += p.speedY*delta*Math.sin(TO_RADIANS*p.angle);
+		//p.x += p.speedX*delta*Math.cos(TO_RADIANS*p.angle);
+		//p.y += p.speedY*delta*Math.sin(TO_RADIANS*p.angle);
 		lastMovedTime = Date.now();
 	}
 }
