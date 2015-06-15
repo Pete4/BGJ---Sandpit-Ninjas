@@ -481,7 +481,7 @@ function calculateRequiredObjects(p,gridPlayers,gridAsteroids,gridResources,grid
     for (var y = startYGrid; y <= endYGrid; y++) {
       for (var i = 0; i < gridPlayers[x][y].length; i++) {
         var o = players[gridPlayers[x][y][i]];
-        //if (typeof(o) != 'undefined') {
+        if (typeof(o) != 'undefined') {
           var arrayOfValues = [
             o.x,
             o.y,
@@ -497,9 +497,9 @@ function calculateRequiredObjects(p,gridPlayers,gridAsteroids,gridResources,grid
           ];
           //playersToSend.push(players[gridPlayers[x][y][i]]);
           playersToSend.push(arrayOfValues);
-        //} else {
-        //  console.log('WARNING: Player in grid is undefined at line 485.')
-        //}
+        } else {
+          console.log('WARNING: Player in grid is undefined at line 485.')
+        }
       }
       playersToSendInds = playersToSendInds.concat(gridPlayers[x][y])
       
