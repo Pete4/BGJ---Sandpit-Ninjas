@@ -836,7 +836,6 @@ function removeAsteroidsAndMissiles() {
 }
 
 function gameLoop() {
-    var time = Date.now();
   //console.log(asteroids.length)
   removeAsteroidsAndMissiles();
   fireMissiles();
@@ -845,10 +844,6 @@ function gameLoop() {
   acceleratePlayers();
   moveMissiles();
   getScores();
-
-
   sendUpdates();
 
-  console.log(Date.now() - time);
-  //console.log(Date.now() - time);
 }
