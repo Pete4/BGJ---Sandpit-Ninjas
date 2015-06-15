@@ -677,7 +677,7 @@ function fireMissiles() {
       //Create missile
       var socket = io.sockets.connected[p.id];
       socket.emit('newmissile',true);
-      var missile = new Missile(genID(),p.x+5*Math.cos(p.angle*TO_RADIANS),p.y+5*Math.sin(p.angle*TO_RADIANS),p.angle,missiles.length,p.id);
+      var missile = new Missile(genID(),p.x+5*Math.cos(p.angle*TO_RADIANS),p.y+5*Math.sin(p.angle*TO_RADIANS),p.angle,p.id);
       missiles.push(missile);
       p.lastFiredTime = Date.now();
     }
