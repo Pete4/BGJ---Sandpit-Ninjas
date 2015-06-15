@@ -65,9 +65,8 @@ var asteroidBelts = [
   [2000,2100 ,0.0004 ,0      ,1], /* Dense belt */
   [2100,3000 ,0.00008,0.00004,1],
   [3000,3100 ,0.0004 ,0      ,1], /* Dense belt */
-  [3100,4900 ,0.0001 ,0.00004,1],
-  [4900,5000 ,0.0004 ,0      ,1], /* Dense belt */
-  [5000,10000,0.00002,0.00003,1], /* Wide belt */
+  [3100,4950 ,0.0001 ,0.00004,1],
+  [4950,5000 ,0.0004 ,0      ,1] /* Dense belt */
 ];
 var baseRadius = 300;
 var baseShieldRadius = 400
@@ -482,21 +481,25 @@ function calculateRequiredObjects(p,gridPlayers,gridAsteroids,gridResources,grid
     for (var y = startYGrid; y <= endYGrid; y++) {
       for (var i = 0; i < gridPlayers[x][y].length; i++) {
         var o = players[gridPlayers[x][y][i]];
-        var arrayOfValues = [
-          Math.floor(o.x),
-          Math.floor(o.y),
-          o.width,
-          Math.floor(o.angle),
-          o.health,
-          o.name,
-          o.holdLevel,
-          o.weaponLevel,
-          o.engineLevel,
-          o.starterShip,
-          o.state
-        ];
-        //playersToSend.push(players[gridPlayers[x][y][i]]);
-        playersToSend.push(arrayOfValues);
+        if (typeof(o) != 'undefined') {
+          var arrayOfValues = [
+            Math.floor(o.x),
+            Math.floor(o.y),
+            o.width,
+            Math.floor(o.angle),
+            o.health,
+            o.name,
+            o.holdLevel,
+            o.weaponLevel,
+            o.engineLevel,
+            o.starterShip,
+            o.state
+          ];
+          //playersToSend.push(players[gridPlayers[x][y][i]]);
+          playersToSend.push(arrayOfValues);
+        } else {
+          console.log('WARNING: Player in grid is undefined at line 485.')
+        }
       }
       playersToSendInds = playersToSendInds.concat(gridPlayers[x][y])
       
