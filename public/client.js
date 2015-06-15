@@ -30,6 +30,17 @@ var curDisplayedMessage = "";
 var curDisplayedDuration = 50;
 var junkCapacities = [5,10,20,40];
 var displayShipDesign = false;
+var ARRAY_INDEX = {
+  x:0,
+  y:1,
+  width:2,
+  angle:3,
+  health:4,
+  type:5,
+  timeSinceDeath:6,
+  imageNum:7,
+  shooterID:8
+};
 
 //Load images
 var spaceshipStationary = new Image(); spaceshipStationary.src = 'images/FirstSpace_NoFlame.png';
@@ -485,43 +496,43 @@ function acceleratePlayer() {
 }
 
 function checkForCollosions(p,objects) {
-  for (var i = 0; i < objects.length; i++) {
-    var o = objects[i];
-    var xDiff = p.x - o.x;
-    var yDiff = p.y - o.y;
-    var collDist = (o.width/2)*0.85 + (p.width/2)*0.85;
-    if (o.health > 0 && xDiff*xDiff + yDiff*yDiff < collDist*collDist) {
-      // Collision has occurred!
-      if (o.type == 'standard') {
-        if (p.starterShip) var junkCapacity = junkCapacities[STARTER_SHIP];
-        else var junkCapacity = junkCapacities[p.holdLevel+1];
-        if (junkCapacity > p.junk) {
-          o.health -= 20;
-          p.junk += 1;
-        } else {
-		  displayMessage('Junk capacity reached!');
-		  if (!soundMuted) audioError.play();
-		}
-      } else if (o.type == 'asteroid') {
-        o.health -= 20;
-        p.lastCollisionTime = Date.now();
-        if (p.shield >= 20) p.shield -= 20;
-        else if (p.shield == 0) p.health -= 20;
-        else {
-          p.health -= (20-p.shield);
-          p.shield = 0;
-        }
-      } else if (o.type == 'missile' && o.shooterID != p.id) {
-        o.health -= 20;
-        p.lastCollisionTime = Date.now();
-        if (p.shield >= 20) p.shield -= 20;
-        else if (p.shield == 0) p.health -= 20;
-        else {
-          p.health -= (20-p.shield);
-          p.shield = 0;
-        }
-      }
-    }
+  if (typeof(objects) != 'undefined') {
+	  for (var i = 0; i < objects.length; i++) {
+	    var o = objects[i];
+	    var xDiff = p.x - o[ARRAY_INDEX.x];
+	    var yDiff = p.y - o[ARRAY_INDEX.u];
+	    var collDist = (o[ARRAY_INDEX.width]/2)*0.85 + (p.width/2)*0.85;
+	    if (o[ARRAY_INDEX.health] > 0 && xDiff*xDiff + yDiff*yDiff < collDist*collDist) {
+	      // Collision has occurred!
+	      o[ARRAY_INDEX.health] -= 20;
+	      if (o[ARRAY_INDEX.type] == 's') {
+	        if (p.starterShip) var junkCapacity = junkCapacities[STARTER_SHIP];
+	        else var junkCapacity = junkCapacities[p.holdLevel+1];
+	        if (junkCapacity > p.junk) {
+	          p.junk += 1;
+	        } else {
+			  displayMessage('Junk capacity reached!');
+			  if (!soundMuted) audioError.play();
+			}
+	      } else if (o[ARRAY_INDEX.type] == 'a') {
+	        p.lastCollisionTime = Date.now();
+	        if (p.shield >= 20) p.shield -= 20;
+	        else if (p.shield == 0) p.health -= 20;
+	        else {
+	          p.health -= (20-p.shield);
+	          p.shield = 0;
+	        }
+	      } else if (o[ARRAY_INDEX.type] == 'm' && o[ARRAY_INDEX.shooterID] != p.id) {
+	        p.lastCollisionTime = Date.now();
+	        if (p.shield >= 20) p.shield -= 20;
+	        else if (p.shield == 0) p.health -= 20;
+	        else {
+	          p.health -= (20-p.shield);
+	          p.shield = 0;
+	        }
+	      }
+	    }
+	  }	
   }
 }
 
@@ -565,59 +576,65 @@ function drawObjects() {
 	ctx.drawImage(spawnImage, coords.x-300, coords.y-300, 600, 600);
 	
 	//Draw resources and asteroids
-	for (var i = 0; i < resources.length; i++) {
-		var coords = getLocalCoords(resources[i].x, resources[i].y);
-		ctx.drawImage(resourceImage, coords.x-16, coords.y-16, 32, 32);
-	}
-	for (var i = 0; i < asteroids.length; i++) {
-		var coords = getLocalCoords(asteroids[i].x, asteroids[i].y);
-		ctx.save();
-	    ctx.translate(coords.x,coords.y);
-	    ctx.rotate((asteroids[i].angle+90)*TO_RADIANS);
-		if (asteroids[i].timeOfDeath == null) {
-			ctx.drawImage(asteroid[0][asteroids[i].imageNum], -(asteroids[i].width/2), -(asteroids[i].height/2), asteroids[i].width, asteroids[i].height);
-			//ctx.drawImage(asteroid[0], coords.x-(asteroids[i].width/2), coords.y-(asteroids[i].height/2), asteroids[i].width, asteroids[i].height);
-		}else {
-			ctx.drawImage(asteroid[1+Math.min(1,Math.floor(asteroids[i].timeSinceDeath/250))], -(asteroids[i].width/2), -(asteroids[i].height/2), asteroids[i].width, asteroids[i].height);
-			//ctx.drawImage(asteroid[1+Math.min(1,Math.floor(asteroids[i].timeSinceDeath/250))], coords.x-(asteroids[i].width/2), coords.y-(asteroids[i].height/2), asteroids[i].width, asteroids[i].height);
+	if (typeof(resources) != 'undefined') {
+		for (var i = 0; i < resources.length; i++) {
+			var coords = getLocalCoords(resources[i][ARRAY_INDEX.x], resources[i][ARRAY_INDEX.y]);
+			ctx.drawImage(resourceImage, coords.x-16, coords.y-16, 32, 32);
 		}
-		ctx.restore();
-	}
-	for (var i = 0; i < missiles.length; i++) {
-		var coords = getLocalCoords(missiles[i].x, missiles[i].y);
-		ctx.save();
-	    ctx.translate(coords.x,coords.y);
-	    ctx.rotate((missiles[i].angle+90)*TO_RADIANS);
-	    if (missiles[i].timeOfDeath == null) {
-			ctx.drawImage(missile[0], -5, -12, 10, 25);
-		} else {
-			ctx.drawImage(missile[1], -5, -12, 10, 25);
+  }
+  if (typeof(asteroids) != 'undefined') {
+		for (var i = 0; i < asteroids.length; i++) {
+			var coords = getLocalCoords(asteroids[i][ARRAY_INDEX.x], asteroids[i][ARRAY_INDEX.y]);
+			ctx.save();
+		    ctx.translate(coords.x,coords.y);
+		    ctx.rotate((asteroids[i][ARRAY_INDEX.angle]+90)*TO_RADIANS);
+			if (asteroids[i][ARRAY_INDEX.timeSinceDeath] == null) {
+				ctx.drawImage(asteroid[0][asteroids[i][ARRAY_INDEX.imageNum]], -32, -32, 64, 64);
+			}else {
+				ctx.drawImage(asteroid[1+Math.min(1,Math.floor(asteroids[i][ARRAY_INDEX.timeSinceDeath]/250))], -32, -32, 64, 64);
+			}
+			ctx.restore();
 		}
-	    ctx.restore();
+	}
+	if (typeof(missiles) != 'undefined') {
+		for (var i = 0; i < missiles.length; i++) {
+			var coords = getLocalCoords(missiles[i][ARRAY_INDEX.x], missiles[i][ARRAY_INDEX.y]);
+			ctx.save();
+		    ctx.translate(coords.x,coords.y);
+		    ctx.rotate((missiles[i][ARRAY_INDEX.angle]+90)*TO_RADIANS);
+		    if (missiles[i][ARRAY_INDEX.timeSinceDeath] == null) {
+				ctx.drawImage(missile[0], -5, -12, 10, 25);
+			} else {
+				ctx.drawImage(missile[1], -5, -12, 10, 25);
+			}
+		    ctx.restore();
+		}
 	}
 }
 
 function drawPlayers() {
 	//Draw others spaceships
-	for (var i = 0; i < players.length; i++) {
-		if (player.id != players[i].id) {
-			var coords = getLocalCoords(players[i].x, players[i].y);
-			ctx.save();
-			ctx.translate(coords.x,coords.y);
-			ctx.rotate((players[i].angle+90)*TO_RADIANS);
-			if (players[i].starterShip) {
-				ctx.drawImage(spaceship[players[i].state], -32, -32, 64, 64);
-			} else {
-				ctx.drawImage(shipCockpit, -56, -48, 112, 96);
-				ctx.drawImage(shipStorage[players[i].holdLevel], -56, -48, 112, 96);
-				ctx.drawImage(shipWeapons[players[i].weaponLevel], -56, -48, 112, 96);
-				ctx.drawImage(shipEngines[players[i].engineLevel][players[i].state], -56, -48, 112, 96);
+	if (typeof(players) != 'undefined') {
+		for (var i = 0; i < players.length; i++) {
+			if (player.id != players[i].id) {
+				var coords = getLocalCoords(players[i].x, players[i].y);
+				ctx.save();
+				ctx.translate(coords.x,coords.y);
+				ctx.rotate((players[i].angle+90)*TO_RADIANS);
+				if (players[i].starterShip) {
+					ctx.drawImage(spaceship[players[i].state], -32, -32, 64, 64);
+				} else {
+					ctx.drawImage(shipCockpit, -56, -48, 112, 96);
+					ctx.drawImage(shipStorage[players[i].holdLevel], -56, -48, 112, 96);
+					ctx.drawImage(shipWeapons[players[i].weaponLevel], -56, -48, 112, 96);
+					ctx.drawImage(shipEngines[players[i].engineLevel][players[i].state], -56, -48, 112, 96);
+				}
+				ctx.restore();
+				ctx.fillStyle = '#fff';
+				ctx.textAlign = 'center';
+				ctx.font="bold 16px Arial";
+				ctx.fillText(players[i].name, coords.x,coords.y-35);
 			}
-			ctx.restore();
-			ctx.fillStyle = '#fff';
-			ctx.textAlign = 'center';
-			ctx.font="bold 16px Arial";
-			ctx.fillText(players[i].name, coords.x,coords.y-35);
 		}
 	}
 	

@@ -10,7 +10,7 @@ function Asteroid(id,x,y,angle,imageNum) {
   this.timeOfDeath = null;
   this.timeSinceDeath = null;
   this.lastMoveTime = Date.now();
-  this.type = 'asteroid';
+  this.type = 'a';
   this.imageNum = imageNum;
   
   return {

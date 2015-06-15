@@ -7,7 +7,7 @@ function Missile(id,x,y,angle,shooterID) {
   this.angle = angle;
   this.width = 10;
   this.height = 25;
-  this.type = 'missile';
+  this.type = 'm';
   this.timeOfDeath = null;
   this.timeSinceDeath = null;
   this.lastMovedTime = Date.now();
