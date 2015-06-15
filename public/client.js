@@ -37,9 +37,16 @@ var ARRAY_INDEX = {
   angle:3,
   health:4,
   type:5,
+  name:5,
   timeSinceDeath:6,
+  holdLevel:6,
   imageNum:7,
-  shooterID:8
+  weaponLevel:7,
+  shooterID:8,
+  engineLevel:8,
+  displayExplosion:9,
+  starterShip:9,
+  state:10
 };
 
 //Load images
@@ -304,9 +311,6 @@ function registerSocketHooks() {
 	//Hooks for websocket
 	socket.on('player', function(p) {
 		player = p;
-	})
-	socket.on('players', function(p) {
-		players = p;
 	})
 	socket.on('gamedata', function(obj) {
 		players = obj.players;
@@ -590,8 +594,8 @@ function drawObjects() {
 		    ctx.rotate((asteroids[i][ARRAY_INDEX.angle]+90)*TO_RADIANS);
 			if (asteroids[i][ARRAY_INDEX.timeSinceDeath] == null) {
 				ctx.drawImage(asteroid[0][asteroids[i][ARRAY_INDEX.imageNum]], -32, -32, 64, 64);
-			}else {
-				ctx.drawImage(asteroid[1+Math.min(1,Math.floor(asteroids[i][ARRAY_INDEX.timeSinceDeath]/250))], -32, -32, 64, 64);
+			} else if (asteroids[i][ARRAY_INDEX.timeSinceDeath] < 400) {
+				ctx.drawImage(asteroid[1+Math.min(1,Math.floor(asteroids[i][ARRAY_INDEX.timeSinceDeath]/200))], -32, -32, 64, 64);
 			}
 			ctx.restore();
 		}
@@ -600,14 +604,14 @@ function drawObjects() {
 		for (var i = 0; i < missiles.length; i++) {
 			var coords = getLocalCoords(missiles[i][ARRAY_INDEX.x], missiles[i][ARRAY_INDEX.y]);
 			ctx.save();
-		    ctx.translate(coords.x,coords.y);
-		    ctx.rotate((missiles[i][ARRAY_INDEX.angle]+90)*TO_RADIANS);
-		    if (missiles[i][ARRAY_INDEX.timeSinceDeath] == null) {
+	    ctx.translate(coords.x,coords.y);
+	    ctx.rotate((missiles[i][ARRAY_INDEX.angle]+90)*TO_RADIANS);
+	    if (missiles[i][ARRAY_INDEX.timeSinceDeath] == null || !missiles[i][ARRAY_INDEX.displayExplosion]) {
 				ctx.drawImage(missile[0], -5, -12, 10, 25);
-			} else {
+			} else if (missiles[i][ARRAY_INDEX.timeSinceDeath] < 400) {
 				ctx.drawImage(missile[1], -5, -12, 10, 25);
 			}
-		    ctx.restore();
+	    ctx.restore();
 		}
 	}
 }
@@ -616,41 +620,26 @@ function drawPlayers() {
 	//Draw others spaceships
 	if (typeof(players) != 'undefined') {
 		for (var i = 0; i < players.length; i++) {
-			if (player.id != players[i].id) {
-				var coords = getLocalCoords(players[i].x, players[i].y);
-				ctx.save();
-				ctx.translate(coords.x,coords.y);
-				ctx.rotate((players[i].angle+90)*TO_RADIANS);
-				if (players[i].starterShip) {
-					ctx.drawImage(spaceship[players[i].state], -32, -32, 64, 64);
-				} else {
-					ctx.drawImage(shipCockpit, -56, -48, 112, 96);
-					ctx.drawImage(shipStorage[players[i].holdLevel], -56, -48, 112, 96);
-					ctx.drawImage(shipWeapons[players[i].weaponLevel], -56, -48, 112, 96);
-					ctx.drawImage(shipEngines[players[i].engineLevel][players[i].state], -56, -48, 112, 96);
-				}
-				ctx.restore();
-				ctx.fillStyle = '#fff';
-				ctx.textAlign = 'center';
-				ctx.font="bold 16px Arial";
-				ctx.fillText(players[i].name, coords.x,coords.y-35);
+			var coords = getLocalCoords(players[i][ARRAY_INDEX.x], players[i][ARRAY_INDEX.y]);
+			ctx.save();
+			ctx.translate(coords.x,coords.y);
+			ctx.rotate((players[i][ARRAY_INDEX.angle]+90)*TO_RADIANS);
+			if (players[i][ARRAY_INDEX.starterShip]) {
+				ctx.drawImage(spaceship[players[i][ARRAY_INDEX.state]], -32, -32, 64, 64);
+			} else {
+				ctx.drawImage(shipCockpit, -56, -48, 112, 96);
+				ctx.drawImage(shipStorage[players[i][ARRAY_INDEX.holdLevel]], -56, -48, 112, 96);
+				ctx.drawImage(shipWeapons[players[i][ARRAY_INDEX.weaponLevel]], -56, -48, 112, 96);
+				ctx.drawImage(shipEngines[players[i][ARRAY_INDEX.engineLevel]][players[i][ARRAY_INDEX.state]], -56, -48, 112, 96);
 			}
+			ctx.restore();
+			ctx.fillStyle = '#fff';
+			ctx.textAlign = 'center';
+			ctx.font="bold 16px Arial";
+			ctx.fillText(players[i][ARRAY_INDEX.name], coords.x,coords.y-35);
 		}
 	}
 	
-	//Draw our spaceship
-    ctx.save();
-    ctx.translate(canvas.width/2,canvas.height/2);
-    ctx.rotate((player.angle+90)*TO_RADIANS);
-	if (player.starterShip) {
-		ctx.drawImage(spaceship[state], -32, -32, 64, 64);
-	} else {
-		ctx.drawImage(shipCockpit, -56, -48, 112, 96);
-		ctx.drawImage(shipStorage[player.holdLevel], -56, -48, 112, 96);
-		ctx.drawImage(shipWeapons[player.weaponLevel], -56, -48, 112, 96);
-		ctx.drawImage(shipEngines[player.engineLevel][player.state], -56, -48, 112, 96);
-	}
-    ctx.restore();
 	ctx.fillStyle = '#fff';
 	ctx.textAlign = 'center';
 	ctx.font="bold 16px Arial";
@@ -663,8 +652,8 @@ function updateCanvas() {
 	
 	acceleratePlayer();
 	checkForCollosions(player,asteroids);
-    checkForCollosions(player,resources);
-    checkForCollosions(player,missiles);
+  checkForCollosions(player,resources);
+  checkForCollosions(player,missiles);
 	drawObjects();
 	drawPlayers();
 	drawUI();
@@ -839,11 +828,12 @@ function drawUI() {
 	var cashWidthOffset = 305;
 	var cashHeightOffset = 60;
 	ctx.drawImage(euroBlueImage, cashWidthOffset, canvas.height-cashHeightOffset);
-	for (var i = 1; i <= player.cash.toString().length; i++) {
+	var cashString = player.cash.toString();
+	for (var i = 1; i <= cashString.length; i++) {
 		if (i % 2 == 0) {
-			ctx.drawImage(getBlueNumImage(player.cash.toString()[i-1]), cashWidthOffset + (20*i) + 8, canvas.height-cashHeightOffset+2);
+			ctx.drawImage(getBlueNumImage(cashString[i-1]), cashWidthOffset + (20*i) + 8, canvas.height-cashHeightOffset+2);
 		} else {
-			ctx.drawImage(getPinkNumImage(player.cash.toString()[i-1]), cashWidthOffset + (20*i) + 8, canvas.height-cashHeightOffset+2);
+			ctx.drawImage(getPinkNumImage(cashString[i-1]), cashWidthOffset + (20*i) + 8, canvas.height-cashHeightOffset+2);
 		}
 	}
 }

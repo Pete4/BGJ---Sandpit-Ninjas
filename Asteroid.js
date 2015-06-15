@@ -1,21 +1,20 @@
 function Asteroid(id,x,y,angle,imageNum) {
   this.id = id;
-  this.ind = null;
-  this.x = x;
-  this.y = y;
+  this.x = Math.floor(x);
+  this.y = Math.floor(y);
   this.health = 20;
   this.angle = angle;
   this.width = 64;
   this.height = 64;
   this.timeOfDeath = null;
   this.timeSinceDeath = null;
+  this.destroyed = false;
   this.lastMoveTime = Date.now();
   this.type = 'a';
   this.imageNum = imageNum;
   
   return {
     id: this.id,
-    ind: this.ind,
     x: this.x,
     y: this.y,
     health: this.health,
@@ -24,6 +23,7 @@ function Asteroid(id,x,y,angle,imageNum) {
     height: this.height,
     timeOfDeath: this.timeOfDeath,
     timeSinceDeath: this.timeSinceDeath,
+    destroyed: this.destroyed,
     lastMoveTime: this.lastMoveTime,
     type: this.type,
     imageNum: this.imageNum

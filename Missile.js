@@ -12,10 +12,11 @@ function Missile(id,x,y,angle,shooterID) {
   this.timeSinceDeath = null;
   this.lastMovedTime = Date.now();
   this.shooterID = shooterID;
+  this.destroyed = false;
+  this.displayExplosion = false;
   
   return {
     id: this.id,
-    ind: this.ind,
     x: this.x,
     y: this.y,
     health: this.health,
@@ -26,7 +27,9 @@ function Missile(id,x,y,angle,shooterID) {
     timeOfDeath: this.timeOfDeath,
     timeSinceDeath: this.timeSinceDeath,
     lastMovedTime: this.lastMovedTime,
-    shooterID: this.shooterID
+    shooterID: this.shooterID,
+    destroyed: this.destroyed,
+    displayExplosion: this.displayExplosion
   };
 }
 exports.Missile = Missile;
