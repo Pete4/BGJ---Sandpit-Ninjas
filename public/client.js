@@ -620,26 +620,40 @@ function drawPlayers() {
 	//Draw others spaceships
 	if (typeof(players) != 'undefined') {
 		for (var i = 0; i < players.length; i++) {
-			var coords = getLocalCoords(players[i][ARRAY_INDEX.x], players[i][ARRAY_INDEX.y]);
-			ctx.save();
-			ctx.translate(coords.x,coords.y);
-			ctx.rotate((players[i][ARRAY_INDEX.angle]+90)*TO_RADIANS);
-			if (players[i][ARRAY_INDEX.starterShip]) {
-				ctx.drawImage(spaceship[players[i][ARRAY_INDEX.state]], -32, -32, 64, 64);
-			} else {
-				ctx.drawImage(shipCockpit, -56, -48, 112, 96);
-				ctx.drawImage(shipStorage[players[i][ARRAY_INDEX.holdLevel]], -56, -48, 112, 96);
-				ctx.drawImage(shipWeapons[players[i][ARRAY_INDEX.weaponLevel]], -56, -48, 112, 96);
-				ctx.drawImage(shipEngines[players[i][ARRAY_INDEX.engineLevel]][players[i][ARRAY_INDEX.state]], -56, -48, 112, 96);
+			if (player.name != players[i][ARRAY_INDEX.name]) {
+				var coords = getLocalCoords(players[i][ARRAY_INDEX.x], players[i][ARRAY_INDEX.y]);
+				ctx.save();
+				ctx.translate(coords.x,coords.y);
+				ctx.rotate((players[i][ARRAY_INDEX.angle]+90)*TO_RADIANS);
+				if (players[i][ARRAY_INDEX.starterShip]) {
+					ctx.drawImage(spaceship[players[i][ARRAY_INDEX.state]], -32, -32, 64, 64);
+				} else {
+					ctx.drawImage(shipCockpit, -56, -48, 112, 96);
+					ctx.drawImage(shipStorage[players[i][ARRAY_INDEX.holdLevel]], -56, -48, 112, 96);
+					ctx.drawImage(shipWeapons[players[i][ARRAY_INDEX.weaponLevel]], -56, -48, 112, 96);
+					ctx.drawImage(shipEngines[players[i][ARRAY_INDEX.engineLevel]][players[i][ARRAY_INDEX.state]], -56, -48, 112, 96);
+				}
+				ctx.restore();
+				ctx.fillStyle = '#fff';
+				ctx.textAlign = 'center';
+				ctx.font="bold 16px Arial";
+				ctx.fillText(players[i][ARRAY_INDEX.name], coords.x,coords.y-35);
 			}
-			ctx.restore();
-			ctx.fillStyle = '#fff';
-			ctx.textAlign = 'center';
-			ctx.font="bold 16px Arial";
-			ctx.fillText(players[i][ARRAY_INDEX.name], coords.x,coords.y-35);
 		}
 	}
-	
+
+	ctx.save();
+  ctx.translate(canvas.width/2,canvas.height/2);
+  ctx.rotate((player.angle+90)*TO_RADIANS);
+	if (player.starterShip) {
+		ctx.drawImage(spaceship[state], -32, -32, 64, 64);
+	} else {
+		ctx.drawImage(shipCockpit, -56, -48, 112, 96);
+		ctx.drawImage(shipStorage[player.holdLevel], -56, -48, 112, 96);
+		ctx.drawImage(shipWeapons[player.weaponLevel], -56, -48, 112, 96);
+		ctx.drawImage(shipEngines[player.engineLevel][player.state], -56, -48, 112, 96);
+	}
+  ctx.restore();
 	ctx.fillStyle = '#fff';
 	ctx.textAlign = 'center';
 	ctx.font="bold 16px Arial";
