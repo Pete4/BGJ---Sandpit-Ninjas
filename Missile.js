@@ -1,8 +1,9 @@
-function Missile(id,x,y,angle,ind,shooterID) {
+function Missile(id,x,y,angle,shooterID) {
   this.id = id;
   this.x = x;
   this.y = y;
   this.health = 20;
+  this.ind = null;
   this.angle = angle;
   this.width = 10;
   this.height = 25;

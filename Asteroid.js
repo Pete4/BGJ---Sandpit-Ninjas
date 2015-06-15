@@ -1,6 +1,6 @@
-function Asteroid(id,x,y,angle,ind,imageNum) {
+function Asteroid(id,x,y,angle,imageNum) {
   this.id = id;
-  this.ind = ind;
+  this.ind = null;
   this.x = x;
   this.y = y;
   this.health = 20;

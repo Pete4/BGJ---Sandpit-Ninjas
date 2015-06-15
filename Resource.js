@@ -1,6 +1,6 @@
-function Resource(id,x,y,type,ind) {
+function Resource(id,x,y,type) {
   this.id = id;
-  this.ind = ind;
+  this.ind = null;
   this.x = x;
   this.y = y;
   this.type = type;

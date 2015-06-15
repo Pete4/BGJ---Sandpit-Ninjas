@@ -270,31 +270,31 @@ function genAsteroidsAndResources() {
       for (var j = 0; j < numAsteroids; j++) {
         var r = Math.random()*(b[1]-b[0])+b[0];
         var angle = Math.random()*360;
-        asteroids.push(new Asteroid(genID(),r*Math.cos(angle),r*Math.sin(angle),Math.random()*360,i,Math.floor(Math.random()*3)));
+        asteroids.push(new Asteroid(genID(),r*Math.cos(angle),r*Math.sin(angle),Math.random()*360,Math.floor(Math.random()*3)));
       }
       for (var j = 0; j < numResources; j++) {
         var r = Math.random()*(b[1]-b[0])+b[0];
         var angle = Math.random()*360;
-        resources.push(new Resource(genID(),r*Math.cos(angle),r*Math.sin(angle),'standard',i));
+        resources.push(new Resource(genID(),r*Math.cos(angle),r*Math.sin(angle),'standard'));
       }
     }
   }
 }
 
-function genAsteroid(minRad,maxRad,i) {
+function genAsteroid(minRad,maxRad) {
   var startAng = 0;
   var endAng = 360;
   var r = Math.random()*(maxRad-minRad)+minRad;
   var angle = Math.random()*(endAng-startAng) + startAng;
-  asteroids.push(new Asteroid(genID(),r*Math.cos(angle),r*Math.sin(angle),Math.random()*360,i,Math.floor(Math.random()*3)));
+  asteroids.push(new Asteroid(genID(),r*Math.cos(angle),r*Math.sin(angle),Math.random()*360,Math.floor(Math.random()*3)));
 }
 
-function genResource(minRad,maxRad,i) {
+function genResource(minRad,maxRad) {
   var startAng = 0;
   var endAng = 360;
   var r = Math.random()*(maxRad-minRad)+minRad;
   var angle = Math.random()*(endAng-startAng) + startAng;
-  resources.push(new Resource(genID(),r*Math.cos(angle),r*Math.sin(angle),'standard',i));
+  resources.push(new Resource(genID(),r*Math.cos(angle),r*Math.sin(angle),'standard'));
 }
 
 function movePlayers() {
@@ -595,13 +595,13 @@ function sendUpdates() {
     var a = asteroids[deleteAsteroidList[i]];
     var belt = findBelt(a)
     asteroids.splice(deleteAsteroidList[i],1);
-    setTimeout(function(){genAsteroid(asteroidBelts[belt][0],asteroidBelts[belt][0],asteroids.length)},30000)
+    //setTimeout(function(){genAsteroid(asteroidBelts[belt][0],asteroidBelts[belt][0])},30000)
   }
   for(var i = deleteResourceList.length-1; i >= 0; i--) {
     var r = resources[deleteResourceList[i]];
     var belt = findBelt(r)
     resources.splice(deleteResourceList[i],1);
-    setTimeout(function(){genResource(asteroidBelts[belt][0],asteroidBelts[belt][0],resources.length)},30000)
+    //setTimeout(function(){genResource(asteroidBelts[belt][0],asteroidBelts[belt][0])},30000)
   }
   for(var i = deleteMissilesList.length-1; i >= 0; i--) {
     missiles.splice(deleteMissilesList[i],1);
@@ -684,19 +684,8 @@ function fireMissiles() {
   }
 }
 
-function spinAsteroids() {
-  for (var i = 0; i < asteroids.length; i++) {
-    var a = asteroids[i];
-    var delta = (Date.now()-a.lastMovedTime)/1000.0;
-    a.angle = (a.angle + 50*delta) % 360;
-    if (a.angle < 0) a.angle += 360;
-    a.lastMovedTime = Date.now();
-  }
-}
-
 function gameLoop() {
   fireMissiles();
-  spinAsteroids();
   clearJunk();
   checkPlayers();
   acceleratePlayers();
