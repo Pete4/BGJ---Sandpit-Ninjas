@@ -65,7 +65,7 @@ var asteroidBelts = [
   [2000,2100 ,0.0004 ,0      ,1], /* Dense belt */
   [2100,3000 ,0.00008,0.00004,1],
   [3000,3100 ,0.0004 ,0      ,1], /* Dense belt */
-  [3100,4950 ,0.0001 ,0.00004,1],
+  [3100,4950 ,0.00001,0.00004,1],
   [4950,5000 ,0.0004 ,0      ,1] /* Dense belt */
 ];
 var baseRadius = 300;
@@ -73,7 +73,7 @@ var baseShieldRadius = 400
 var junkPrice = 20;
 var gridSize = 200;
 var idCounter = 0;
-var frameDelay = 40;
+var frameDelay = 30;
 var missileSpeed = 100;
 var fireRates = [0,1,2,3];
 var fuelCapacities = [60,120,240,480];
@@ -481,10 +481,10 @@ function calculateRequiredObjects(p,gridPlayers,gridAsteroids,gridResources,grid
     for (var y = startYGrid; y <= endYGrid; y++) {
       for (var i = 0; i < gridPlayers[x][y].length; i++) {
         var o = players[gridPlayers[x][y][i]];
-        if (typeof(o) != 'undefined') {
+        //if (typeof(o) != 'undefined') {
           var arrayOfValues = [
-            Math.floor(o.x),
-            Math.floor(o.y),
+            o.x,
+            o.y,
             o.width,
             Math.floor(o.angle),
             o.health,
@@ -497,9 +497,9 @@ function calculateRequiredObjects(p,gridPlayers,gridAsteroids,gridResources,grid
           ];
           //playersToSend.push(players[gridPlayers[x][y][i]]);
           playersToSend.push(arrayOfValues);
-        } else {
-          console.log('WARNING: Player in grid is undefined at line 485.')
-        }
+        //} else {
+        //  console.log('WARNING: Player in grid is undefined at line 485.')
+        //}
       }
       playersToSendInds = playersToSendInds.concat(gridPlayers[x][y])
       
@@ -836,7 +836,8 @@ function removeAsteroidsAndMissiles() {
 }
 
 function gameLoop() {
-  //var time = Date.now();
+    var time = Date.now();
+  //console.log(asteroids.length)
   removeAsteroidsAndMissiles();
   fireMissiles();
   clearJunk();
@@ -844,6 +845,10 @@ function gameLoop() {
   acceleratePlayers();
   moveMissiles();
   getScores();
+
+
   sendUpdates();
+
+  console.log(Date.now() - time);
   //console.log(Date.now() - time);
 }
