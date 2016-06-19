@@ -571,100 +571,37 @@ function sortObjectIntoGrids(object, grids) {
   grids[xCoord][yCoord].push(object);
 }
 
-function calculateRequiredObjects(p) {
-  var playersToSend = [];
-  var asteroidsToSend = [];
-  var resourcesToSend = [];
-  var missilesToSend = [];
-  var startXGrid = Math.max(Math.floor((p.x-(p.canvasSize.width/2))/gridSize)+numNegXGrids,0);
-  var endXGrid = Math.min(Math.floor((p.x+(p.canvasSize.width/2))/gridSize)+numNegXGrids,lastXGridIndex);
-  var startYGrid = Math.max(Math.floor((p.y-(p.canvasSize.height/2))/gridSize)+numNegYGrids,0);
-  var endYGrid = Math.min(Math.floor((p.y+(p.canvasSize.height/2))/gridSize)+numNegYGrids,lastYGridIndex);
-  p.grids = {
-    startXGrid: startXGrid,
-    endXGrid: endXGrid,
-    startYGrid: startYGrid, 
-    endYGrid: endYGrid
+function calculateGridsInSight() {
+  for(var i = 0; i < players.length; i++) {
+    var p = players[i];
+    var startXGrid = Math.max(Math.floor((p.x-(p.canvasSize.width/2))/gridSize)
+      + numNegXGrids,0);
+    var endXGrid = Math.min(Math.floor((p.x+(p.canvasSize.width/2))/gridSize)
+      + numNegXGrids,lastXGridIndex);
+    var startYGrid = Math.max(Math.floor((p.y-(p.canvasSize.height/2))/gridSize)
+      + numNegYGrids,0);
+    var endYGrid = Math.min(Math.floor((p.y+(p.canvasSize.height/2))/gridSize)
+      + numNegYGrids,lastYGridIndex);
+    p.grids = {
+      startXGrid: startXGrid,
+      endXGrid: endXGrid,
+      startYGrid: startYGrid, 
+      endYGrid: endYGrid
+    };
   }
-  for (var x = startXGrid; x <= endXGrid; x++) {
-    for (var y = startYGrid; y <= endYGrid; y++) {
-      for (var i = 0; i < gridPlayers[x][y].length; i++) {
-        var o = gridPlayers[x][y][i];
-        if (typeof(o) != 'undefined') {
-          var arrayOfValues = [
-            o.x,
-            o.y,
-            o.width,
-            Math.floor(o.angle),
-            o.health,
-            o.name,
-            o.holdLevel,
-            o.weaponLevel,
-            o.engineLevel,
-            o.starterShip,
-            o.state
-          ];
-          playersToSend.push(arrayOfValues);
-        } else {
-          console.log('WARNING: Player in grid is undefined at line 485.')
-        }
-      }
-      
-      for (var i = 0; i < gridAsteroids[x][y].length; i++) {
-        var o = gridAsteroids[x][y][i];
-        var arrayOfValues = [
-          Math.floor(o.x),
-          Math.floor(o.y),
-          o.width,
-          Math.floor(o.angle),
-          o.health,
-          o.type,
-          o.timeSinceDeath,
-          o.imageNum
-        ];
-        asteroidsToSend.push(arrayOfValues);
-      }
-      
-      for (var i = 0; i < gridResources[x][y].length; i++) {
-        var o = gridResources[x][y][i];
-        var arrayOfValues = [
-          Math.floor(o.x),
-          Math.floor(o.y),
-          o.width,
-          Math.floor(o.angle),
-          o.health,
-          o.type
-        ];
-        resourcesToSend.push(arrayOfValues);
-      }
-      
-      for (var i = 0; i < gridMissiles[x][y].length; i++) {
-        var o = gridMissiles[x][y][i];
-        var arrayOfValues = [
-          Math.floor(o.x),
-          Math.floor(o.y),
-          o.width,
-          Math.floor(o.angle),
-          o.health,
-          o.type,
-          o.timeSinceDeath,
-          o.imageNum,
-          o.shooterID,
-          o.displayExplosion
-        ];
-        missilesToSend.push(arrayOfValues);
-      }
-    }
-  }
-  return {
-    players: playersToSend,
-    asteroids: asteroidsToSend,
-    resources: resourcesToSend,
-    missiles: missilesToSend
-  };
 }
 
-function checkForCollosions(p,gridObjects) {
+function checkForAllCollisions() {
+  for(var i = 0; i < players.length; i++) {
+    var p = players[i];
+    checkForCollisions(p,gridAsteroids);
+    checkForCollisions(p,gridResources);
+    checkForCollisions(p,gridMissiles);
+  }
+  asteroidMissileCollisions();
+}
+
+function checkForCollisions(p,gridObjects) {
   var socket = io.sockets.connected[p.id];
   for (var x = p.grids.startXGrid; x <= p.grids.endXGrid; x++) {
     for (var y = p.grids.startYGrid; y <= p.grids.endYGrid; y++) {
@@ -745,9 +682,91 @@ function asteroidMissileCollisions() {
   }
 }
 
-function sendUpdates() {
-  asteroidMissileCollisions();
+function calculateRequiredObjects(p) {
+  var playersToSend = [];
+  var asteroidsToSend = [];
+  var resourcesToSend = [];
+  var missilesToSend = [];
+  
+  for (var x = p.grids.startXGrid; x <= p.grids.endXGrid; x++) {
+    for (var y = p.grids.startYGrid; y <= p.grids.endYGrid; y++) {
+      for (var i = 0; i < gridPlayers[x][y].length; i++) {
+        var o = gridPlayers[x][y][i];
+        if (typeof(o) != 'undefined') {
+          var arrayOfValues = [
+            o.x,
+            o.y,
+            o.width,
+            Math.floor(o.angle),
+            o.health,
+            o.name,
+            o.holdLevel,
+            o.weaponLevel,
+            o.engineLevel,
+            o.starterShip,
+            o.state
+          ];
+          playersToSend.push(arrayOfValues);
+        } else {
+          console.log('WARNING: Player in grid is undefined at line 485.')
+        }
+      }
+      
+      for (var i = 0; i < gridAsteroids[x][y].length; i++) {
+        var o = gridAsteroids[x][y][i];
+        var arrayOfValues = [
+          Math.floor(o.x),
+          Math.floor(o.y),
+          o.width,
+          Math.floor(o.angle),
+          o.health,
+          o.type,
+          o.timeSinceDeath,
+          o.imageNum
+        ];
+        asteroidsToSend.push(arrayOfValues);
+      }
+      
+      for (var i = 0; i < gridResources[x][y].length; i++) {
+        var o = gridResources[x][y][i];
+        var arrayOfValues = [
+          Math.floor(o.x),
+          Math.floor(o.y),
+          o.width,
+          Math.floor(o.angle),
+          o.health,
+          o.type
+        ];
+        resourcesToSend.push(arrayOfValues);
+      }
+      
+      for (var i = 0; i < gridMissiles[x][y].length; i++) {
+        var o = gridMissiles[x][y][i];
+        var arrayOfValues = [
+          Math.floor(o.x),
+          Math.floor(o.y),
+          o.width,
+          Math.floor(o.angle),
+          o.health,
+          o.type,
+          o.timeSinceDeath,
+          o.imageNum,
+          o.shooterID,
+          o.displayExplosion
+        ];
+        missilesToSend.push(arrayOfValues);
+      }
+    }
+  }
+  return {
+    players: playersToSend,
+    asteroids: asteroidsToSend,
+    resources: resourcesToSend,
+    missiles: missilesToSend
+  };
+}
 
+function sendUpdates() {
   for (var i = 0; i < players.length; i++) {
     var p = players[i];
     var socket = io.sockets.connected[p.id];
@@ -757,10 +776,6 @@ function sendUpdates() {
     
     // Find out what each user should be able to see
     var objsToSend = calculateRequiredObjects(p);
-
-    checkForCollosions(p,gridAsteroids);
-    checkForCollosions(p,gridResources);
-    checkForCollosions(p,gridMissiles);
 
     // Send updates
     if (typeof(socket) != 'undefined') {
@@ -874,6 +889,8 @@ function gameLoop() {
   checkPlayers();
   acceleratePlayers();
   moveMissiles();
+  calculateGridsInSight();
+  checkForAllCollisions();
   clearDeadObjects();
   getScores();
   sendUpdates();
