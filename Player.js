@@ -2,6 +2,16 @@ function Player(id,name) {
   this.id = id;
   this.x = 0;
   this.y = -1;
+  this.gridX = 0;
+  this.gridY = 0;
+  this.grids = {
+    startXGrid: 0,
+    endXGrid: 0,
+    startYGrid: 0, 
+    endYGrid: 0
+  };
+  this.gridArray = [];
+  this.oldGridArray = [];
   this.angle = 270;
   this.name = name;
   this.score = 0;
@@ -36,6 +46,11 @@ function Player(id,name) {
     id: this.id,
     x: this.x,
     y: this.y,
+    gridX: this.gridX,
+    gridY: this.gridY,
+    grids: this.grids,
+    gridArray: this.gridArray,
+    oldGridArray: this.oldGridArray,
     angle: this.angle,
     name: this.name,
     score: this.score,

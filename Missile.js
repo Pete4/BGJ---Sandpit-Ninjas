@@ -2,6 +2,8 @@ function Missile(id,x,y,angle,shooterID) {
   this.id = id;
   this.x = x;
   this.y = y;
+  this.gridX = 0;
+  this.gridY = 0;
   this.health = 20;
   this.ind = null;
   this.angle = angle;
@@ -19,6 +21,8 @@ function Missile(id,x,y,angle,shooterID) {
     id: this.id,
     x: this.x,
     y: this.y,
+    gridX: this.gridX,
+    gridY: this.gridY,
     health: this.health,
     angle: this.angle,
     width: this.width,
