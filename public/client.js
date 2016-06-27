@@ -3,8 +3,8 @@
 var playerPresets = {furthestDistance:0, cash:0, x:0, y:0, angle:270, fuel:100, junk:0, health:100 ,keyState:{}, ping:0, holdLevel:0, weaponLevel:0, engineLevel:0, starterShip:true};
 var player = playerPresets;
 var players = []; //Other players
-var asteroids = [];
-var resources = [];
+var asteroids = {};
+var resources = {};
 var missiles = [];
 var scores = [];
 var canvas = $("#game-canvas")[0];
@@ -31,22 +31,23 @@ var curDisplayedDuration = 50;
 var junkCapacities = [5,10,20,40];
 var displayShipDesign = false;
 var ARRAY_INDEX = {
-  x:0,
-  y:1,
-  width:2,
-  angle:3,
-  health:4,
-  type:5,
-  name:5,
-  timeSinceDeath:6,
-  holdLevel:6,
-  imageNum:7,
-  weaponLevel:7,
-  shooterID:8,
-  engineLevel:8,
-  displayExplosion:9,
-  starterShip:9,
-  state:10
+	id: 0,
+	x: 1,
+	y: 2,
+	width: 3,
+	angle: 4,
+	health: 5,
+	type: 6,
+	name: 6,
+	timeSinceDeath: 7,
+	holdLevel: 7,
+	imageNum: 8,
+	weaponLevel: 8,
+	shooterID: 9,
+	engineLevel: 9,
+	displayExplosion: 10,
+	starterShip: 10,
+	state: 11
 };
 
 //Load images
@@ -314,14 +315,28 @@ function registerSocketHooks() {
 	})
 	socket.on('gamedata', function(obj) {
 		players = obj.players;
-		asteroids = obj.asteroids;
-		resources = obj.resources;
 		missiles = obj.missiles;
 		scores = obj.scores;
-	})
+		for (var i = 0; i < obj.asteroids.new.length; i++) {
+			asteroids[obj.asteroids.new[i][0]] = obj.asteroids.new[i];
+		}
+		for (var i = 0; i < obj.asteroids.old.length; i++) {
+			if (obj.asteroids.old[i] in asteroids) {
+				delete asteroids[obj.asteroids.old[i]];
+			}
+		}
+		for (var i = 0; i < obj.resources.new.length; i++) {
+			resources[obj.resources.new[i][0]] = obj.resources.new[i];
+		}
+		for (var i = 0; i < obj.resources.old.length; i++) {
+			if (obj.resources.old[i] in resources) {
+				delete resources[obj.resources.old[i]];
+			}
+		}
+	});
 	socket.on('ping', function(p){
-      socket.emit('ping response',p);
-    });
+	  socket.emit('ping response',p);
+	});
 	socket.on('refillfuel', function(response){
 		if (response == true) {
 			if (!soundMuted) audioFuel.play();
@@ -581,37 +596,44 @@ function drawObjects() {
 	
 	//Draw resources and asteroids
 	if (typeof(resources) != 'undefined') {
-		for (var i = 0; i < resources.length; i++) {
-			var coords = getLocalCoords(resources[i][ARRAY_INDEX.x], resources[i][ARRAY_INDEX.y]);
-			ctx.drawImage(resourceImage, coords.x-16, coords.y-16, 32, 32);
-		}
-  }
-  if (typeof(asteroids) != 'undefined') {
-		for (var i = 0; i < asteroids.length; i++) {
-			var coords = getLocalCoords(asteroids[i][ARRAY_INDEX.x], asteroids[i][ARRAY_INDEX.y]);
-			ctx.save();
-		    ctx.translate(coords.x,coords.y);
-		    ctx.rotate((asteroids[i][ARRAY_INDEX.angle]+90)*TO_RADIANS);
-			if (asteroids[i][ARRAY_INDEX.timeSinceDeath] == null) {
-				ctx.drawImage(asteroid[0][asteroids[i][ARRAY_INDEX.imageNum]], -32, -32, 64, 64);
-			} else if (asteroids[i][ARRAY_INDEX.timeSinceDeath] < 400) {
-				ctx.drawImage(asteroid[1+Math.min(1,Math.floor(asteroids[i][ARRAY_INDEX.timeSinceDeath]/200))], -32, -32, 64, 64);
+		for (var id in resources) {
+			if (resources.hasOwnProperty(id)) {
+				var r = resources[id];
+				var coords = getLocalCoords(r[ARRAY_INDEX.x], r[ARRAY_INDEX.y]);
+				ctx.drawImage(resourceImage, coords.x-16, coords.y-16, 32, 32);
 			}
-			ctx.restore();
+		}
+	}
+	if (typeof(asteroids) != 'undefined') {
+		for (var id in asteroids) {
+			if (asteroids.hasOwnProperty(id)) {
+				var a = asteroids[id];
+				var coords = getLocalCoords(a[ARRAY_INDEX.x], a[ARRAY_INDEX.y]);
+				ctx.save();
+				ctx.translate(coords.x,coords.y);
+				ctx.rotate((a[ARRAY_INDEX.angle]+90)*TO_RADIANS);
+				if (a[ARRAY_INDEX.timeSinceDeath] == null) {
+					ctx.drawImage(asteroid[0][a[ARRAY_INDEX.imageNum]], -32, -32, 64, 64);
+				} else if (a[ARRAY_INDEX.timeSinceDeath] < 400) {
+					ctx.drawImage(asteroid[1+Math.min(1,Math.floor(a[ARRAY_INDEX.timeSinceDeath]/200))], -32, -32, 64, 64);
+				}
+				ctx.restore();
+			}
 		}
 	}
 	if (typeof(missiles) != 'undefined') {
 		for (var i = 0; i < missiles.length; i++) {
-			var coords = getLocalCoords(missiles[i][ARRAY_INDEX.x], missiles[i][ARRAY_INDEX.y]);
+			var m = missiles[i];
+			var coords = getLocalCoords(m[ARRAY_INDEX.x], m[ARRAY_INDEX.y]);
 			ctx.save();
-	    ctx.translate(coords.x,coords.y);
-	    ctx.rotate((missiles[i][ARRAY_INDEX.angle]+90)*TO_RADIANS);
-	    if (missiles[i][ARRAY_INDEX.timeSinceDeath] == null || !missiles[i][ARRAY_INDEX.displayExplosion]) {
-				ctx.drawImage(missile[0], -5, -12, 10, 25);
-			} else if (missiles[i][ARRAY_INDEX.timeSinceDeath] < 400) {
-				ctx.drawImage(missile[1], -5, -12, 10, 25);
+			ctx.translate(coords.x,coords.y);
+			ctx.rotate((m[ARRAY_INDEX.angle]+90)*TO_RADIANS);
+			if (m[ARRAY_INDEX.timeSinceDeath] == null || !m[ARRAY_INDEX.displayExplosion]) {
+					ctx.drawImage(missile[0], -5, -12, 10, 25);
+				} else if (m[ARRAY_INDEX.timeSinceDeath] < 400) {
+					ctx.drawImage(missile[1], -5, -12, 10, 25);
 			}
-	    ctx.restore();
+			ctx.restore();
 		}
 	}
 }
@@ -643,8 +665,8 @@ function drawPlayers() {
 	}
 
 	ctx.save();
-  ctx.translate(canvas.width/2,canvas.height/2);
-  ctx.rotate((player.angle+90)*TO_RADIANS);
+	ctx.translate(canvas.width/2,canvas.height/2);
+	ctx.rotate((player.angle+90)*TO_RADIANS);
 	if (player.starterShip) {
 		ctx.drawImage(spaceship[state], -32, -32, 64, 64);
 	} else {
@@ -653,7 +675,7 @@ function drawPlayers() {
 		ctx.drawImage(shipWeapons[player.weaponLevel], -56, -48, 112, 96);
 		ctx.drawImage(shipEngines[player.engineLevel][player.state], -56, -48, 112, 96);
 	}
-  ctx.restore();
+	ctx.restore();
 	ctx.fillStyle = '#fff';
 	ctx.textAlign = 'center';
 	ctx.font="bold 16px Arial";
@@ -666,8 +688,8 @@ function updateCanvas() {
 	
 	acceleratePlayer();
 	checkForCollosions(player,asteroids);
-  checkForCollosions(player,resources);
-  checkForCollosions(player,missiles);
+	checkForCollosions(player,resources);
+	checkForCollosions(player,missiles);
 	drawObjects();
 	drawPlayers();
 	drawUI();
@@ -733,22 +755,24 @@ function drawUI() {
 	ctx.fillStyle="#fff";
 	ctx.font="12px Arial";
 	var pingText = "Ping: " + player.ping;
-    ctx.fillText(pingText, 38, 30);
+	ctx.fillText(pingText, 38, 30);
 	
 	//Display leaderboard
-	ctx.textAlign = 'middle';
-	ctx.font="bold 18px Arial";
-	ctx.fillText('Max dist: '+Math.floor(player.furthestDistance), canvas.width-160,50);
-	ctx.textAlign = 'left';
-	ctx.font="bold 25px Arial";
-	ctx.fillText('Leaderboard', canvas.width-235,100);
-	ctx.font="18px Arial";
-	var initialScoreboardHeight = 135;
-	for (var i = 0; i < scores.length; i++) {
-		ctx.fillText((i+1).toString()+'. '+scores[i][0], canvas.width-270,initialScoreboardHeight + (i*30));
-		ctx.fillText(scores[i][1], canvas.width-90,initialScoreboardHeight + (i*30));
+	if (typeof(scores) != "undefined") {
+		ctx.textAlign = 'middle';
+		ctx.font="bold 18px Arial";
+		ctx.fillText('Max dist: '+Math.floor(player.furthestDistance), canvas.width-160,50);
+		ctx.textAlign = 'left';
+		ctx.font="bold 25px Arial";
+		ctx.fillText('Leaderboard', canvas.width-235,100);
+		ctx.font="18px Arial";
+		var initialScoreboardHeight = 135;
+		for (var i = 0; i < scores.length; i++) {
+			ctx.fillText((i+1).toString()+'. '+scores[i][0], canvas.width-270,initialScoreboardHeight + (i*30));
+			ctx.fillText(scores[i][1], canvas.width-90,initialScoreboardHeight + (i*30));
+		}
 	}
-	
+
 	//Display fuel
 	var fuelHeightOffset =260;
 	var fuelBars = Math.floor(player.fuel/20);
@@ -833,10 +857,10 @@ function drawUI() {
 	
 	//Arrow
 	ctx.save();
-    ctx.translate(244,canvas.height-43);
-    ctx.rotate(Math.atan2(player.y, player.x)-Math.PI/2);
+	ctx.translate(244,canvas.height-43);
+	ctx.rotate(Math.atan2(player.y, player.x)-Math.PI/2);
 	ctx.drawImage(arrowImage, -24, -37, 48, 75);
-    ctx.restore();
+	ctx.restore();
 	
 	//Display money
 	var cashWidthOffset = 305;
@@ -899,3 +923,11 @@ function getPinkNumImage(num) {
 		return ninePinkImage
 	}
 }
+
+Object.size = function(obj) {
+	var size = 0, key;
+	for (key in obj) {
+		if (obj.hasOwnProperty(key)) size++;
+	}
+	return size;
+};
